@@ -1,0 +1,9 @@
+*.exe
+*.html
+*.dot
+*.png
+*.txt
+*.jpg
+*.log
+callgrind*
+perf*
