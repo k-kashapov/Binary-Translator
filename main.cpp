@@ -55,7 +55,15 @@ int main (int argc, const char **argv)
 
         // CreateNodeImage (res, "res.png");
         SaveNode (res, "base.txt");
-        Translate (res, "asm.txt");
+
+        if (io_config.settings & NASM)
+        {
+            ToNASM (res, io_config.output_file);
+        }
+        else
+        {
+            Translate (res, io_config.output_file);
+        }
 
         FreeTransTree (res, nodes, nodesNum);
         CloseLogFile ();

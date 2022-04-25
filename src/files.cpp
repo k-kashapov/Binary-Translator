@@ -28,6 +28,10 @@ int GetArgs (int argc, const char **argv, Config *curr_config)
         {
             curr_config->settings |= REVERSE;
         }
+        else if (!strncmp (*argv, "-S", 3))
+        {
+            curr_config->settings |= NASM;
+        }
     }
     return 0;
 }

@@ -1,5 +1,5 @@
-#ifndef TREEASM_H
-#define TREEASM_H
+#ifndef TONASM_H
+#define TONASM_H
 
 #include "Lang.h"
 
@@ -32,15 +32,6 @@ static int  PrintSt       (TNode *node);
 static int  PrintUNARY    (TNode *node);
 static int  NodeToAsm     (TNode *node);
 
-const char *RES    = "rx"; /* a register for calculations result
-                              i.e. function's return value        */
-
-const char *FREE   = "fx"; /* a register that holds free space
-                            begin position                   */
-
-const char *MEM    = "mx"; /* a register that holds current
-                            function memory begin position */
-
 #define CURR    node
 #define LEFT    node->left
 #define RIGHT   node->right
@@ -53,6 +44,20 @@ const char *MEM    = "mx"; /* a register that holds current
 
 #define ASM_IDS    &IDS,       &IDNUM
 #define GLOBAL_IDS &GlobalArr, &GlobalNum
+
+static const char *ArgumentRegs[] = { "rdi", "rsi", "rdx", "rcx", "r8", "r9" };
+static const int  MaxArgsRegs  = 6;
+
+#define RES  "rax"
+#define MEM  "rbp"
+#define FREE "rsp"
+
+#define ADD(dst, src) PrintA ("add " # dst ", " # src);
+#define MOV(dst, src) PrintA ("mov " # dst ", " # src);
+
+#define INC(trgt) PrintA ("inc " # trgt);
+#define PUSH(src) PrintA ("push " # src);
+#define POP(dst)  PrintA ("pop "  # dst);
 
 #define SAVE() PrintA ("pop %s\n", RES)
 

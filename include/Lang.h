@@ -171,6 +171,8 @@ void CloseBaseFile (void);
 
 int Translate (TNode *root, const char *name);
 
+int ToNASM (TNode *root, const char *name);
+
 void FreeTransTree (TNode *root, TNode **nodes, int nodesNum);
 
 int AddId (Id **IdsArr, int *IdsNum, int64_t hash, char isConst = 0, int len = 1, int memOfs = 0);

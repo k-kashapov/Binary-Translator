@@ -14,15 +14,16 @@ const int BUFF_SIZE = 500;
 
 enum FilesExitCodes
 {
-  READ_TEXT_FAILED =    -1,
+  READ_TEXT_FAILED    = -1,
   WRITING_TEXT_FAILED = -2,
-  OPEN_FILE_FAILED =    -3
+  OPEN_FILE_FAILED    = -3,
 };
 
 enum LANG_OPTNS
 {
     READ_BASE = 0x01,
     REVERSE   = 0x02,
+    NASM      = 0x04,
 };
 
 /**
