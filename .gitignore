@@ -7,3 +7,5 @@
 *.log
 callgrind*
 perf*
+*~
+*.out

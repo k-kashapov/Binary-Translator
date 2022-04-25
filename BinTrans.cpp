@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <assert.h>
 
+#ifdef IS_LINUX
+#include <stdlib.h>
+#endif
+
 int ConstructELFTemplate (FILE *dest)
 {
     assert (dest);
@@ -9,7 +13,7 @@ int ConstructELFTemplate (FILE *dest)
     //                             Magic constant       64-bit   endian   IDK    System-V
     //                           /                 \     /  \     /  \    /  \  /        \.
     const char header_const[] = { 0x7F, 'E', 'L', 'F',   0x02,    0x01,   0x01, 0x00, 0x00,
-    
+
     //                                                                   AMD
     //                                Dummy bytes          EXE          x86-64
     //                            /                 \   /        \    /        \.
@@ -45,17 +49,26 @@ int ConstructELFTemplate (FILE *dest)
 
     fwrite (header_const, sizeof (char), sizeof (header_const), dest);
 
-    
+
     return 0;
 }
 
 int main (int argc, const char **argv)
 {
-    FILE *temp = fopen ("b.out", "wb");
+    FILE *temp = fopen (
+                        #ifdef IS_LINUX
+                                "b.out",
+                        #else
+                                "b.exe",
+                        #endif
+                        "wb");
 
     ConstructELFTemplate (temp);
 
     fclose (temp);
+    #ifdef IS_LINUX
+    system ("chmod +x b.out");
+    #endif
 
     return 0;
 }
