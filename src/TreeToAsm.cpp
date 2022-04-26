@@ -267,7 +267,6 @@ static int PrintOP (TNode *node)
         OP_CASE ('/', "div");
         OP_CASE ('^', "pow");
         default:
-            printf("JOPAAAAAAAAAA\n");
             break;
     }
 

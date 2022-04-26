@@ -3,7 +3,7 @@ all: k++
 bin/all: k++
 		 mv k++ /bin/k++
 
-basicFlags = -I include -Wall -Wextra -O2
+basicFlags = -I include -Wall -Wextra -O2 -g
 
 langDepends = main.cpp src/DiffGraph.cpp src/files.cpp src/Ids.cpp src/Lang.cpp           \
 			  src/Lexic.cpp src/Logs.cpp src/SimpleHash.cpp src/Tree.cpp src/ToNASM.cpp   \

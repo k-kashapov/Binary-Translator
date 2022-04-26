@@ -6,7 +6,7 @@
 static FILE *AsmFile   = NULL;
 static int  IdsNum     = 0;
 static Id   *IdsArr    = NULL;
-static int  FreeOffset = 0;
+static int  Curr_rsp   = 0;
 static int  MemOffset  = 0;
 static int  Tabs       = 0;
 static Id   *GlobalArr = NULL;
@@ -45,19 +45,29 @@ static int  NodeToAsm     (TNode *node);
 #define ASM_IDS    &IDS,       &IDNUM
 #define GLOBAL_IDS &GlobalArr, &GlobalNum
 
-static const char *ArgumentRegs[] = { "rdi", "rsi", "rdx", "rcx", "r8", "r9" };
-static const int  MaxArgsRegs  = 6;
+// NOT IMPLEMENTED YET:
+// GeneralRegs are used to store variables. The order they are written in
+// is essential, because this the order they will be assigned.
+// This way we try to reduce the amount of memory usage: rdi is used a lot
+// to pass arguments
 
-#define RES  "rax"
+static const int  VarRegsNum     = 12;
+static const int  MaxArgsRegs    = 6;
+static const char *GeneralRegs[] = { "rbx", "r10", "r11", "r12", "r13",
+                                     "r14", "r15", "r9",  "r8",  "rcx",
+                                     "rdx", "rsi", "rdi" };
+
+#define RES  "rax" // ret value
 #define MEM  "rbp"
 #define FREE "rsp"
 
-#define ADD(dst, src) PrintA ("add " # dst ", " # src);
-#define MOV(dst, src) PrintA ("mov " # dst ", " # src);
+#define ADD_SS(dst, src) PrintA ("add %s, %s", dst, src); // args: str, str
+#define ADD_SD(dst, src) PrintA ("add %s, %d", dst, src); // args: str, num
+#define MOV_SS(dst, src) PrintA ("mov %s, %s", dst, src);
 
-#define INC(trgt) PrintA ("inc " # trgt);
-#define PUSH(src) PrintA ("push " # src);
-#define POP(dst)  PrintA ("pop "  # dst);
+#define INC(trgt) PrintA ("inc %s", trgt);
+#define PUSH(src) PrintA ("push %s", src);
+#define POP(dst)  PrintA ("pop %s", dst);
 
 #define SAVE() PrintA ("pop %s\n", RES)
 

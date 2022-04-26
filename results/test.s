@@ -1,35 +1,43 @@
 global _start
 section .text
+_start:
+	pusha      ; push everything
+	call f1058 ; call main
+	popa       ; restore initial regs state
+	mov rax, 0x3C
+	xor rdi, rdi
+	syscall
+
 f7938: ; def Квадрат
 	; if statement
 		; je
 			push [rbp+0] ; ЛошедьА
 			push 0 ; const value
-			je :0cmp
+			je 0cmp
 			push 0
-			jmp :0cmpEnd
+			jmp 0cmpEnd
 			0cmp:
 			push 1
 			0cmpEnd:
-		push 0
-		je :0false
+		test rax, rax
+		jz 0false
+		; call args
 		push [rbp+1] ; ЛошедьБ
-		mov ArgumentRegs[curr_register] "rax"
+		mov rdi, rax
 		push [rbp+2] ; ЛошедьВ
-		mov ArgumentRegs[curr_register] "rax"
+		mov rsi, rax
 		push rbp ; create stack frame
-		mov "rbp" "rsp"
-		call :f8991 ; call Линейная
-		pop "rbp"
-		add rsp, 0 ; pushed args
+		mov rbp, rsp
+		call f8991 ; call Линейная
+		pop rbp
 		push rx
 		pop [rbp+0] ; ЛошедьА
 		
-		jmp :0enif
+		jmp 0enif
 		0false:
 		push 0 ; const value
 		pop [rsp+0] ; declared Дискриминант
-		add "rsp" len
+		add rsp, 1
 		
 		push [rbp+1] ; ЛошедьБ
 		push [rbp+1] ; ЛошедьБ
@@ -46,28 +54,27 @@ f7938: ; def Квадрат
 			; jae
 				push [rbp+3] ; Дискриминант
 				push 0 ; const value
-				jae :1cmp
+				jae 1cmp
 				push 0
-				jmp :1cmpEnd
+				jmp 1cmpEnd
 				1cmp:
 				push 1
 				1cmpEnd:
-			push 0
-			je :1false
+			test rax, rax
+			jz 1false
 			push 0 ; const value
 			pop [rsp+1] ; declared Количество
-			add "rsp" len
+			add rsp, 1
 			
 			push 2 ; const value
 			pop [rbp+4] ; Количество
 			
 			push [rbp+4] ; Количество
-			out ; Количество
-			pop tx ; to trash
+			; out !!!!!!!!!!!!!!!!!!!!!!!!
 			
 			push 0 ; const value
 			pop [rsp+2] ; declared Корень
-			add "rsp" len
+			add rsp, 1
 			
 			push [rbp+3] ; Дискриминант
 			push 1 ; const value
@@ -78,7 +85,7 @@ f7938: ; def Квадрат
 			
 			push 0 ; const value
 			pop [rsp+3] ; declared Корни
-			add "rsp" len
+			add rsp, 2
 			
 			push [rbp+5] ; Корень
 			push [rbp+1] ; ЛошедьБ
@@ -101,18 +108,16 @@ f7938: ; def Квадрат
 			pop [rbp+7] ; Корни
 			
 			push [rbp+6] ; Корни
-			out ; Корни
-			pop tx ; to trash
+			; out !!!!!!!!!!!!!!!!!!!!!!!!
 			
 			push [rbp+7] ; Корни
-			out ; Корни
-			pop tx ; to trash
+			; out !!!!!!!!!!!!!!!!!!!!!!!!
 			
-			jmp :1enif
+			jmp 1enif
 			1false:
 			push 0 ; const value
 			pop [rsp+5] ; declared Жопа
-			add "rsp" len
+			add rsp, 1
 			
 			push 0 ; const value
 			push 1 ; const value
@@ -120,16 +125,13 @@ f7938: ; def Квадрат
 			pop [rbp+7] ; Жопа
 			
 			push [rbp+7] ; Жопа
-			out ; Жопа
-			pop tx ; to trash
+			; out !!!!!!!!!!!!!!!!!!!!!!!!
 			
 			1enif:
 		
 		0enif:
 	
 	push 0 ; const value
-	pop rax
-
 	ret
 	
 
@@ -138,38 +140,37 @@ f8991: ; def Линейная
 		; je
 			push [rbp+1] ; ЛошедьБ
 			push 0 ; const value
-			je :2cmp
+			je 2cmp
 			push 0
-			jmp :2cmpEnd
+			jmp 2cmpEnd
 			2cmp:
 			push 1
 			2cmpEnd:
-		push 0
-		je :2false
+		test rax, rax
+		jz 2false
 		; if statement
 			; je
 				push [rbp+0] ; ЛошедьК
 				push 0 ; const value
-				je :3cmp
+				je 3cmp
 				push 0
-				jmp :3cmpEnd
+				jmp 3cmpEnd
 				3cmp:
 				push 1
 				3cmpEnd:
-			push 0
-			je :3false
+			test rax, rax
+			jz 3false
 			push 0 ; const value
 			pop [rsp+0] ; declared Количество
-			add "rsp" len
+			add rsp, 1
 			
 			push 100 ; const value
 			pop [rbp+2] ; Количество
 			
 			push [rbp+2] ; Количество
-			out ; Количество
-			pop tx ; to trash
+			; out !!!!!!!!!!!!!!!!!!!!!!!!
 			
-			jmp :3enif
+			jmp 3enif
 			3false:
 			push 0 ; const value
 			pop [rbp+3] ; Количество
@@ -178,39 +179,37 @@ f8991: ; def Линейная
 			pop [rbp+2] ; Количество
 			
 			push [rbp+2] ; Количество
-			out ; Количество
-			pop tx ; to trash
+			; out !!!!!!!!!!!!!!!!!!!!!!!!
 			
 			push 0 ; const value
 			pop [rsp+1] ; declared Нулёвочка
-			add "rsp" len
+			add rsp, 1
 			
 			push 0 ; const value
 			pop [rbp+3] ; Нулёвочка
 			
 			push [rbp+3] ; Нулёвочка
-			out ; Нулёвочка
-			pop tx ; to trash
+			; out !!!!!!!!!!!!!!!!!!!!!!!!
 			
 			3enif:
 		
-		jmp :2enif
+		jmp 2enif
 		2false:
 		; if statement
 			; je
 				push [rbp+0] ; ЛошедьК
 				push 0 ; const value
-				je :4cmp
+				je 4cmp
 				push 0
-				jmp :4cmpEnd
+				jmp 4cmpEnd
 				4cmp:
 				push 1
 				4cmpEnd:
-			push 0
-			je :4false
+			test rax, rax
+			jz 4false
 			push 0 ; const value
 			pop [rsp+2] ; declared Жопа
-			add "rsp" len
+			add rsp, 1
 			
 			push 0 ; const value
 			push 1 ; const value
@@ -218,10 +217,9 @@ f8991: ; def Линейная
 			pop [rbp+4] ; Жопа
 			
 			push [rbp+4] ; Жопа
-			out ; Жопа
-			pop tx ; to trash
+			; out !!!!!!!!!!!!!!!!!!!!!!!!
 			
-			jmp :4enif
+			jmp 4enif
 			4false:
 			push 0 ; const value
 			pop [rbp+3] ; Количество
@@ -230,12 +228,11 @@ f8991: ; def Линейная
 			pop [rbp+2] ; Количество
 			
 			push [rbp+2] ; Количество
-			out ; Количество
-			pop tx ; to trash
+			; out !!!!!!!!!!!!!!!!!!!!!!!!
 			
 			push 0 ; const value
 			pop [rsp+3] ; declared Результат
-			add "rsp" len
+			add rsp, 1
 			
 			push 0 ; const value
 			push [rbp+1] ; ЛошедьБ
@@ -245,63 +242,57 @@ f8991: ; def Линейная
 			pop [rbp+5] ; Результат
 			
 			push [rbp+5] ; Результат
-			out ; Результат
-			pop tx ; to trash
+			; out !!!!!!!!!!!!!!!!!!!!!!!!
 			
 			4enif:
 		
 		2enif:
 	
 	push 0 ; const value
-	pop rax
-
 	ret
 	
 
-_start: ; def main
 f1058: ; def main
 	push 0 ; const value
 	pop [rsp+0] ; declared Костыль
-	add "rsp" len
+	add rsp, 1
 	
 	push 0 ; const value
 	pop [rsp+1] ; declared ЛошедьА
-	add "rsp" len
+	add rsp, 1
 	
 	push 0 ; const value
 	pop [rsp+2] ; declared ЛошедьБ
-	add "rsp" len
+	add rsp, 1
 	
 	push 0 ; const value
 	pop [rsp+3] ; declared ЛошедьВ
-	add "rsp" len
+	add rsp, 1
 	
-	in
+	; in ?????????????????????????
 	pop [rbp+1] ; ЛошедьА
 	
-	in
+	; in ?????????????????????????
 	pop [rbp+2] ; ЛошедьБ
 	
-	in
+	; in ?????????????????????????
 	pop [rbp+3] ; ЛошедьВ
 	
+	; call args
 	push [rbp+1] ; ЛошедьА
-	mov ArgumentRegs[curr_register] "rax"
+	mov rdi, rax
 	push [rbp+2] ; ЛошедьБ
-	mov ArgumentRegs[curr_register] "rax"
+	mov rsi, rax
 	push [rbp+3] ; ЛошедьВ
-	mov ArgumentRegs[curr_register] "rax"
+	mov rdx, rax
 	push rbp ; create stack frame
-	mov "rbp" "rsp"
-	call :f7938 ; call Квадрат
-	pop "rbp"
-	add rsp, 0 ; pushed args
+	mov rbp, rsp
+	call f7938 ; call Квадрат
+	pop rbp
 	push rx
 	pop [rbp+0] ; Костыль
 	
 	push 0 ; const value
-	pop rax
-
 	ret
 	
 
