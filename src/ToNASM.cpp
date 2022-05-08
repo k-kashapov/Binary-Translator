@@ -14,13 +14,28 @@ static void PrintA (const char *msg, ...)
     fprintf (AsmFile, "\n");
 }
 
+static int AddVar (char isConst, int len, TNode *var)
+{
+    LOG_MSG ("var declared = %.*s; len = %d", var->len, var->declared, var->len);
+
+    PrintA
+    (
+        "mov [%s - %d], rax ; declared %.*s", // save value to FREE + OFFSET
+        FREE, (IdsNum + 1) * 8, var->len, var->declared
+    );
+
+    int id = AddId (ASM_IDS, var->data, isConst, len);
+
+    return id;
+}
+
 static int PrintCallArgs (TNode *node)
 {
     if (!RIGHT || !CURR) return 0;
 
     PrintA ("; call args");
 
-    for (int curr_register = 0; curr_register < MaxArgsRegs, CURR; curr_register++)
+    for (int curr_register = 0; curr_register < MaxArgsRegs && CURR; curr_register++)
     {
         NodeToAsm (RIGHT); // Evaluate the argument
 
@@ -46,13 +61,8 @@ static int PrintCALL (TNode *node)
 {
     $ int pushed = PrintCallArgs (RIGHT);
 
-    PrintA ("push rbp ; create stack frame");
-    MOV_SS ("rbp", "rsp");
-
     PrintA ("call f%ld ; call %.*s",
             abs (LEFT->data), LEFT->len, LEFT->declared);
-
-    POP ("rbp");
 
     if (pushed)
         ADD_SD ("rsp", pushed * 8);
@@ -65,6 +75,8 @@ static int PrintRET (TNode *node)
     $ int rErr = NodeToAsm (RIGHT);
     if (rErr) return rErr;
 
+    POP ("rbp ; stack frame return\n");
+
     PrintA ("ret");
 
     return 0;
@@ -74,8 +86,7 @@ static int PrintDEF (TNode *node)
 {
     $ assert (CURR);
 
-    TNode *params      = LEFT;
-    int   initFreeOffs = Curr_rsp;
+    TNode *params = LEFT;
 
     IdsArr = (Id *) calloc (INIT_IDS_NUM, sizeof (Id));
     IdsNum = 0;
@@ -86,6 +97,9 @@ static int PrintDEF (TNode *node)
     $ PrintA ("f%ld: ; def %.*s", hash, params->left->len, params->left->declared);
 
     Tabs++;
+
+    PrintA ("push rbp ; create stack frame");
+    MOV_SS ("rbp", "rsp\n");
 
     for (TNode *curr_param = params->right;
          curr_param;
@@ -99,8 +113,6 @@ static int PrintDEF (TNode *node)
 
     Tabs--;
 
-    Curr_rsp = initFreeOffs;
-
     free (IdsArr);
     IdsArr = NULL;
     IdsNum = 0;
@@ -111,7 +123,7 @@ static int PrintDEF (TNode *node)
 static int PrintIN (TNode *node)
 {
     $ if (!node) return 1;
-    PrintA ("; in ?????????????????????????");
+    PrintA ("; in ??????????????????????????");
     return 0;
 }
 
@@ -137,34 +149,37 @@ static int PrintNeg (TNode *node)
     return 0;
 }
 
-static int PrintIF (TNode *node)
-{
-    $ static int ifNum = 0;
-    int localIfNum = ifNum;
-    ifNum++;
-
-    PrintA ("; if statement");
-    Tabs++;
-    NodeToAsm (LEFT);
-
-    PrintA ("test rax, rax");
-    PrintA ("jz %dfalse", localIfNum);
-
-    TNode *decis = RIGHT;
-
-    if (decis->left)
-        NodeToAsm (decis->left);
-    PrintA ("jmp %denif", localIfNum);
-
-    PrintA ("%dfalse:", localIfNum);
-    if (decis->right)
-        NodeToAsm (decis->right);
-
-    PrintA ("%denif:", localIfNum);
-    Tabs--;
-
-    return 0;
-}
+// static int PrintIF (TNode *node)
+// {
+//     $ static int ifNum = 0;
+//     int localIfNum = ifNum;
+//     ifNum++;
+//
+//     PrintA ("; if statement");
+//     Tabs++;
+//     NodeToAsm (LEFT);
+//
+//     PrintA ("test rax, rax");
+//     PrintA ("jz %dfalse", localIfNum);
+//
+//     TNode *decis = RIGHT;
+//
+//     if (decis->left)
+//         NodeToAsm (decis->left);
+//     PrintA ("jmp %denif", localIfNum);
+//
+//     PrintA ("%dfalse:", localIfNum);
+//     if (decis->right)
+//         NodeToAsm (decis->right);
+//
+//     PrintA ("%denif:", localIfNum);
+//
+//     PopVar (1);
+//
+//     Tabs--;
+//
+//     return 0;
+// }
 
 static int PrintWHILE (TNode *node)
 {
@@ -195,7 +210,7 @@ static int PrintWHILE (TNode *node)
 #define IF_SERVICE(serv) if (DATA == ServiceNodes[serv]) return Print##serv (CURR);
 static int PrintSERV (TNode *node)
 {
-    $ IF_SERVICE (IF);
+    // $ IF_SERVICE (IF);
     $ IF_SERVICE (DEF);
     $ IF_SERVICE (RET);
     $ IF_SERVICE (OUT);
@@ -214,21 +229,39 @@ static int PrintSERV (TNode *node)
         PrintA (act);                                                           \
         break
 
-#define COMP_CASE(val, action)                                                  \
-    case val:                                                                   \
-        PrintA ("; " action);                                                   \
-        Tabs++;                                                                 \
-        NodeToAsm (LEFT);                                                       \
-        NodeToAsm (RIGHT);                                                      \
-        PrintA (action " %dcmp", cmpNum);                                       \
-        PrintA ("push 0");                                                      \
-        PrintA ("jmp %dcmpEnd", cmpNum);                                        \
-        PrintA ("%dcmp:", cmpNum);                                              \
-        PrintA ("push 1");                                                      \
-        PrintA ("%dcmpEnd:", cmpNum);                                           \
-        Tabs--;                                                                 \
-        cmpNum++;                                                               \
-        break
+#define COMP_CASE(val, action) case val: Comp (action, node, cmpNum); break;
+
+static int Comp (const char *action, TNode *node, int cmpNum)
+{
+    PrintA ("; %s", action);
+    Tabs++;
+
+    NodeToAsm (LEFT);
+    TNode left_var = { 0, TYPE_CONST, "temp left", 9, NULL, NULL, NULL };
+    int left_id = AddVar (0, 1, &left_var);
+
+    NodeToAsm (RIGHT);
+
+    PrintA ("cmp [rsp - %d * 8], rax", left_id);
+
+    PrintA ("%s %dcmp\n", action, cmpNum);
+
+    // false
+    PrintA ("xor rax, rax ; false");
+    PrintA ("jmp %dcmpEnd\n", cmpNum);
+
+    // true
+    PrintA ("%dcmp:", cmpNum);
+    PrintA ("mov rax, 1 ; true");
+
+    PrintA ("%dcmpEnd:\n", cmpNum);
+    RmId (ASM_IDS, 1);
+
+    Tabs--;
+    cmpNum++;
+
+    return 0;
+}
 
 static int PrintOP (TNode *node)
 {
@@ -267,7 +300,7 @@ static int PrintAssn (TNode *node)
     $ int rErr = NodeToAsm (RIGHT);
     if (rErr) return rErr;
 
-    int id_pos = FindId (ASM_IDS, LEFT->data, MemOffset);
+    int id_pos = FindId (ASM_IDS, LEFT->data);
 
     int len = 0;     // if we declare an array
     if (LEFT->right)
@@ -275,26 +308,12 @@ static int PrintAssn (TNode *node)
 
     if (id_pos >= 0)
     {
-        if (len != 0)
-        {
-            int offset = (int) LEFT->right->data + id_pos;
-            PrintA ("mov [%s + %d], rax ; %.*s = rax", MEM, offset, LEFT->len, LEFT->declared);
-        }
-        else
-        {
-            PrintA ("mov [%s + %d], rax ; %.*s = rax", MEM, id_pos, LEFT->len, LEFT->declared);
-        }
+        int offset = id_pos + len;
+
+        PrintA ("mov [%s - %d], rax ; %.*s = rax", FREE, offset, LEFT->len, LEFT->declared);
     }
     else
     {
-        LOG_MSG ("var declared = %.*s; len = %d", LEFT->len, LEFT->declared, LEFT->len);
-
-        PrintA
-        (
-            "mov [%s + %d], rax ; declared %.*s", // save value to FREE + OFFSET
-            FREE, Curr_rsp, LEFT->len, LEFT->declared
-        );
-
         char isConst = 0;
         if (LEFT->left) isConst = 1;
 
@@ -303,10 +322,7 @@ static int PrintAssn (TNode *node)
             len = 1;
         }
 
-        AddId (ASM_IDS, LEFT->data, isConst, len, Curr_rsp);
-
-        Curr_rsp += len;
-        ADD_SD ("rsp", len);
+        AddVar (isConst, len, LEFT);
     }
 
     return 0;
@@ -346,15 +362,14 @@ static int PrintVar (TNode *node)
 
     if (id_pos >= 0)
     {
-        if (!RIGHT || RIGHT->data == 0)
+        int offset = id_pos;
+
+        if (RIGHT && RIGHT->data != 0)
         {
-            PrintA ("push [%s+%ld] ; %.*s", MEM, id_pos, LEN, DECL);
+            offset += (int) RIGHT->data;
         }
-        else
-        {
-            int offset = id_pos + (int) RIGHT->data;
-            PrintA ("push [%s+%ld] ; %.*s", MEM, offset, LEN, DECL);
-        }
+
+        PrintA ("mov rax, [%s - %d] ; %.*s", FREE, offset * 8, LEN, DECL);
     }
     else
     {
@@ -433,9 +448,6 @@ int ToNASM (TNode *root, const char *name)
         LOG_ERR ("Unable to open asm file; name = %s\n", name);
         return OPEN_FILE_FAILED;
     }
-
-    GlobalArr = (Id *) calloc (INIT_IDS_NUM, sizeof (Id));
-    GlobalNum = 0;
 
     // main func hash = f1058
 

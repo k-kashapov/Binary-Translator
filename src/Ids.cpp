@@ -11,7 +11,6 @@ int AddId (Id **IdsArr, int *IdsNum, int64_t hash, char isConst, int len, int me
     new_id.hash    = hash;
     new_id.isConst = isConst;
     new_id.len     = len;
-    new_id.memOfs  = memOfs;
 
     $ LOG_MSG ("\tnew hash = %ld; pos = %d\n", hash, NUM);
 
@@ -31,9 +30,9 @@ int AddId (Id **IdsArr, int *IdsNum, int64_t hash, char isConst, int len, int me
 
 int FindId (Id **IdsArr, int *IdsNum, int64_t hash, int reqOfs)
 {
-    for (int id = 0; id < NUM; id++)
+    for (int id = NUM - 1; id >= 0; id--)
     {
-        if (IDS[id].hash == hash && IDS[id].memOfs >= reqOfs)
+        if (IDS[id].hash == hash)
         {
             return id;
         }

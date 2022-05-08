@@ -6,13 +6,11 @@
 static FILE *AsmFile   = NULL;
 static int  IdsNum     = 0;
 static Id   *IdsArr    = NULL;
-static int  Curr_rsp   = 0;
-static int  MemOffset  = 0;
 static int  Tabs       = 0;
-static Id   *GlobalArr = NULL;
-static int  GlobalNum  = 0;
 
 static void PrintA        (const char *msg, ...);
+static int  AddVar        (char isConst, int len, TNode *var);
+static int  Comp          (const char *action, TNode *node, int cmpNum);
 static int  PrintCallArgs (TNode *node);
 static int  PrintCALL     (TNode *node);
 static int  PrintRET      (TNode *node);
@@ -20,7 +18,6 @@ static int  PrintDEF      (TNode *node);
 static int  PrintIN       (TNode *node);
 static int  PrintOUT      (TNode *node);
 static int  PrintNeg      (TNode *node);
-static int  PrintIF       (TNode *node);
 static int  PrintWHILE    (TNode *node);
 static int  PrintSERV     (TNode *node);
 static int  PrintOP       (TNode *node);
@@ -63,6 +60,7 @@ static const char *GeneralRegs[] = { "rbx", "r10", "r11", "r12", "r13",
 
 #define ADD_SS(dst, src) PrintA ("add %s, %s", dst, src); // args: str, str
 #define ADD_SD(dst, src) PrintA ("add %s, %d", dst, src); // args: str, num
+#define SUB_SD(dst, src) PrintA ("sub %s, %d", dst, src); // args: str, num
 #define MOV_SS(dst, src) PrintA ("mov %s, %s", dst, src);
 
 #define INC(trgt) PrintA ("inc %s", trgt);
