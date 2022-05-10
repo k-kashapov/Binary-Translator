@@ -1,6 +1,7 @@
 #ifndef TONASM_H
 #define TONASM_H
 
+#define LOG_NAME "ToNASM"
 #include "Lang.h"
 
 static FILE *AsmFile   = NULL;

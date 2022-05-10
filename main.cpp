@@ -2,7 +2,6 @@
 
 int main (int argc, const char **argv)
 {
-    OpenLogFile ("LangLog.html", "wt");
     Config io_config = {};
     GetArgs (argc, argv, &io_config);
 
@@ -49,11 +48,10 @@ int main (int argc, const char **argv)
             free (trans.FuncArr);
             free (code);
             free (nodes);
-            CloseLogFile ();
             return 0;
         }
 
-        // CreateNodeImage (res, "res.png");
+        CreateNodeImage (res, "res.png");
         SaveNode (res, "base.txt");
 
         if (io_config.settings & NASM)
@@ -66,7 +64,6 @@ int main (int argc, const char **argv)
         }
 
         FreeTransTree (res, nodes, nodesNum);
-        CloseLogFile ();
 
         free (trans.IdsArr);
         free (trans.FuncArr);

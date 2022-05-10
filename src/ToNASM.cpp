@@ -2,7 +2,7 @@
 
 static void PrintA (const char *msg, ...)
 {
-    $$ for (int tab = 0; tab < Tabs; tab++)
+    for (int tab = 0; tab < Tabs; tab++)
     {
         fputc ('\t', AsmFile);
     }
@@ -16,7 +16,6 @@ static void PrintA (const char *msg, ...)
 
 static int AddVar (char isConst, int len, TNode *var)
 {
-    LOG_MSG ("var declared = %.*s; len = %d", var->len, var->declared, var->len);
 
     PrintA
     (
@@ -26,8 +25,12 @@ static int AddVar (char isConst, int len, TNode *var)
 
     int id = AddId (ASM_IDS, var->data, isConst, len);
 
+    LOG_MSG ("var declared = %.*s; len = %d; id = %d", var->len, var->declared, var->len, id);
+
     return id;
 }
+
+// ================ <Service Nodes> ===========
 
 static int PrintCallArgs (TNode *node)
 {
@@ -137,50 +140,6 @@ static int PrintOUT (TNode *node)
     return 0;
 }
 
-static int PrintNeg (TNode *node)
-{
-    // $ static int negsNum = 0;
-    // int localNegsNum = negsNum;
-    // negsNum++;
-    // PrintA ("; !");
-
-    PrintA ("not rax ; DOES THIS WORK? I THINK NOT");
-
-    return 0;
-}
-
-// static int PrintIF (TNode *node)
-// {
-//     $ static int ifNum = 0;
-//     int localIfNum = ifNum;
-//     ifNum++;
-//
-//     PrintA ("; if statement");
-//     Tabs++;
-//     NodeToAsm (LEFT);
-//
-//     PrintA ("test rax, rax");
-//     PrintA ("jz %dfalse", localIfNum);
-//
-//     TNode *decis = RIGHT;
-//
-//     if (decis->left)
-//         NodeToAsm (decis->left);
-//     PrintA ("jmp %denif", localIfNum);
-//
-//     PrintA ("%dfalse:", localIfNum);
-//     if (decis->right)
-//         NodeToAsm (decis->right);
-//
-//     PrintA ("%denif:", localIfNum);
-//
-//     PopVar (1);
-//
-//     Tabs--;
-//
-//     return 0;
-// }
-
 static int PrintWHILE (TNode *node)
 {
     static int whileNum = 0;
@@ -207,10 +166,39 @@ static int PrintWHILE (TNode *node)
     return 0;
 }
 
+static int PrintIF (TNode *node)
+{
+    $ static int ifNum = 0;
+    int localIfNum = ifNum;
+    ifNum++;
+
+    PrintA ("; if statement");
+    Tabs++;
+    NodeToAsm (LEFT);
+
+    PrintA ("test rax, rax");
+    PrintA ("jz %dfalse", localIfNum);
+
+    TNode *decis = RIGHT;
+
+    if (decis->left)
+        NodeToAsm (decis->left);
+    PrintA ("jmp %denif", localIfNum);
+
+    PrintA ("%dfalse:", localIfNum);
+    if (decis->right)
+        NodeToAsm (decis->right);
+
+    PrintA ("%denif:", localIfNum);
+    Tabs--;
+
+    return 0;
+}
+
 #define IF_SERVICE(serv) if (DATA == ServiceNodes[serv]) return Print##serv (CURR);
 static int PrintSERV (TNode *node)
 {
-    // $ IF_SERVICE (IF);
+    $ IF_SERVICE (IF);
     $ IF_SERVICE (DEF);
     $ IF_SERVICE (RET);
     $ IF_SERVICE (OUT);
@@ -222,6 +210,8 @@ static int PrintSERV (TNode *node)
 }
 #undef IF_SERVICE
 
+// ================= <Operations> =============
+
 #define OP_CASE(op, act)                                                        \
     case op:                                                                    \
         NodeToAsm (LEFT);                                                       \
@@ -230,38 +220,6 @@ static int PrintSERV (TNode *node)
         break
 
 #define COMP_CASE(val, action) case val: Comp (action, node, cmpNum); break;
-
-static int Comp (const char *action, TNode *node, int cmpNum)
-{
-    PrintA ("; %s", action);
-    Tabs++;
-
-    NodeToAsm (LEFT);
-    TNode left_var = { 0, TYPE_CONST, "temp left", 9, NULL, NULL, NULL };
-    int left_id = AddVar (0, 1, &left_var);
-
-    NodeToAsm (RIGHT);
-
-    PrintA ("cmp [rsp - %d * 8], rax", left_id);
-
-    PrintA ("%s %dcmp\n", action, cmpNum);
-
-    // false
-    PrintA ("xor rax, rax ; false");
-    PrintA ("jmp %dcmpEnd\n", cmpNum);
-
-    // true
-    PrintA ("%dcmp:", cmpNum);
-    PrintA ("mov rax, 1 ; true");
-
-    PrintA ("%dcmpEnd:\n", cmpNum);
-    RmId (ASM_IDS, 1);
-
-    Tabs--;
-    cmpNum++;
-
-    return 0;
-}
 
 static int PrintOP (TNode *node)
 {
@@ -295,9 +253,51 @@ static int PrintOP (TNode *node)
 #undef OP_CASE
 #undef COMP_CASE
 
+static int Comp (const char *action, TNode *node, int cmpNum)
+{
+    PrintA ("; %s", action);
+    Tabs++;
+
+    NodeToAsm (LEFT);
+    TNode left_var = { 0, TYPE_CONST, "temp left", 9, NULL, NULL, NULL };
+    int left_id = AddVar (0, 1, &left_var);
+
+    NodeToAsm (RIGHT);
+
+    PrintA ("cmp [rsp - %d * 8], rax", left_id);
+
+    PrintA ("%s %dcmp\n", action, cmpNum);
+
+    // false
+    PrintA ("xor rax, rax ; false");
+    PrintA ("jmp %dcmpEnd\n", cmpNum);
+
+    // true
+    PrintA ("%dcmp:", cmpNum);
+    PrintA ("mov rax, 1 ; true");
+
+    PrintA ("%dcmpEnd:\n", cmpNum);
+    RmId (ASM_IDS, 1);
+
+    Tabs--;
+    cmpNum++;
+
+    return 0;
+}
+
+static int PrintNeg (TNode *node)
+{
+    PrintA ("not rax ; DOES THIS WORK? I THINK NOT");
+
+    return 0;
+}
+
 static int PrintAssn (TNode *node)
 {
     $ int rErr = NodeToAsm (RIGHT);
+
+    LOG_MSG ("%.*s = %s", LEFT->len, LEFT->declared, RIGHT->declared);
+
     if (rErr) return rErr;
 
     int id_pos = FindId (ASM_IDS, LEFT->data);
@@ -310,7 +310,7 @@ static int PrintAssn (TNode *node)
     {
         int offset = id_pos + len;
 
-        PrintA ("mov [%s - %d], rax ; %.*s = rax", FREE, offset, LEFT->len, LEFT->declared);
+        PrintA ("mov [%s - %d], rax ; %.*s = rax", FREE, offset * 8, LEFT->len, LEFT->declared);
     }
     else
     {
@@ -327,6 +327,8 @@ static int PrintAssn (TNode *node)
 
     return 0;
 }
+
+// ================ <Const, ID, Var> ==========
 
 static int PrintConst (TNode *node)
 {
@@ -384,16 +386,27 @@ static int PrintSt (TNode *node)
 {
     if (LEFT)
     {
+        LOG_MSG ("LEFT_NODE_Enter: <%p>", LEFT);
+
         $ int lErr = NodeToAsm (LEFT);
+
+        LOG_MSG ("LEFT_NODE_Exit: <%p>", LEFT);
+
         if (lErr) return lErr;
     }
 
+    LOG_MSG ("RIGHT_NODE_Enter: <%p>", RIGHT);
+
     $ int rErr = NodeToAsm (RIGHT);
+
+    LOG_MSG ("RIGHT_NODE_Exit: <%p>", RIGHT);
 
     PrintA ("");
 
     return rErr;
 }
+
+// ================ <Other> ===================
 
 static int PrintUNARY (TNode *node)
 {
