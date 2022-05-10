@@ -16,7 +16,7 @@ const static int INT_LEN = 8;
 static void PrintA        (const char *msg, ...);
 static int  AddVar        (char isConst, int len, TNode *var);
 static int  PopVar        (int len);
-static int  Comp          (const char *action, TNode *node, int cmpNum);
+static int  Comp          (const char *action, TNode *node);
 static int  PrintCallArgs (TNode *node);
 static int  PrintCALL     (TNode *node);
 static int  PrintRET      (TNode *node);

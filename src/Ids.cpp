@@ -1,3 +1,4 @@
+#define LOG_NAME "IDS"
 #include "Lang.h"
 
 #define IDS (*IdsArr)
@@ -15,7 +16,7 @@ int AddId (Id **IdsArr, int *IdsNum, int64_t hash, char isConst, int len, int me
     if (NUM > 0)
     {
         new_id.memOfs = IDS[NUM - 1].memOfs + IDS[NUM - 1].len;
-        printf ("id added: %d; memOfs = %d\n", NUM, new_id.memOfs);
+        LOG_MSG ("id added: %d; memOfs = %d\n", NUM, new_id.memOfs);
     }
 
     $ LOG_MSG ("\tnew hash = %ld; pos = %d\n", hash, NUM);
@@ -31,7 +32,7 @@ int AddId (Id **IdsArr, int *IdsNum, int64_t hash, char isConst, int len, int me
         idCap *= 2;
     }
 
-    return NUM;
+    return NUM - 1;
 }
 
 int FindId (Id **IdsArr, int *IdsNum, int64_t hash, int reqOfs)

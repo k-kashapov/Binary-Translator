@@ -27,16 +27,18 @@ static int AddVar (char isConst, int len, TNode *var)
     Curr_rsp += len;
 
     LOG_MSG ("var declared = %.*s; len = %d; id = %d; memOfs = %d; Frame = %d; offs = [%d; %d]",
-             var->len, var->declared, len, id, IDS[id].memOfs, Frame, OFFS (id, 0), OFFS (id, len));
+             var->len, var->declared, len, id, IDS[id].memOfs + 1, Frame, OFFS (id, 0), OFFS (id, len));
 
     return id;
 }
 
 static int PopVar (int len)
 {
-    RmId (ASM_IDS, 1);
+    int id = RmId (ASM_IDS, 1);
 
     Curr_rsp -= len;
+
+    LOG_MSG ("Popped variable of len %d; new memOfs = %d", len, IDS[id].memOfs + 1);
 
     PrintA ("add rsp, %d; removed variable of len %d", len * INT_LEN, len);
 
@@ -125,7 +127,7 @@ static int PrintDEF (TNode *node)
         LOG_MSG ("param added: %.*s\n"
                  "len = 1; id = %d; memOfs = %d; Frame = %d; offs = [%d; %d]",
                  curr_param->right->len, curr_param->right->declared,
-                 id, IDS[id].memOfs, Frame, OFFS (id, 0), OFFS (id, 1));
+                 id, IDS[id].memOfs + 1, Frame, OFFS (id, 0), OFFS (id, 1));
     }
 
     PrintSt (RIGHT);
@@ -165,18 +167,18 @@ static int PrintWHILE (TNode *node)
     PrintA ("; while");
     Tabs++;
 
-    PrintA ("%dwhile:", localWhileNum);
+    PrintA (".%dwhile:", localWhileNum);
     NodeToAsm (LEFT);
 
     PrintA ("test rax, rax");
-    PrintA ("jz %dwhileEnd", localWhileNum);
+    PrintA ("je .%dwhileEnd", localWhileNum);
 
     if (RIGHT)
         NodeToAsm (RIGHT);
 
-    PrintA ("jmp %dwhile", localWhileNum);
+    PrintA ("jmp .%dwhile", localWhileNum);
 
-    PrintA ("%dwhileEnd:", localWhileNum);
+    PrintA (".%dwhileEnd:", localWhileNum);
     Tabs--;
 
     return 0;
@@ -193,19 +195,19 @@ static int PrintIF (TNode *node)
     NodeToAsm (LEFT);
 
     PrintA ("test rax, rax");
-    PrintA ("jz %dfalse\n", localIfNum);
+    PrintA ("je .%dfalse\n", localIfNum);
 
     TNode *decis = RIGHT;
 
     if (decis->left)
         NodeToAsm (decis->left);
-    PrintA ("jmp %denif\n", localIfNum);
+    PrintA ("jmp .%denif\n", localIfNum);
 
-    PrintA ("%dfalse:\n", localIfNum);
+    PrintA (".%dfalse:\n", localIfNum);
     if (decis->right)
         NodeToAsm (decis->right);
 
-    PrintA ("%denif:\n", localIfNum);
+    PrintA (".%denif:\n", localIfNum);
     Tabs--;
 
     return 0;
@@ -228,18 +230,17 @@ static int PrintSERV (TNode *node)
 
 // ================= <Operations> =============
 
-#define OP_CASE(op, act)                                                        \
-    case op:                                                                    \
-        NodeToAsm (LEFT);                                                       \
-        NodeToAsm (RIGHT);                                                      \
-        PrintA (act);                                                           \
-        break
+#define OP_CASE(op, act) break;
+    // case op:                                                                    \
+    //     NodeToAsm (LEFT);                                                       \
+    //     NodeToAsm (RIGHT);                                                      \
+    //     PrintA (act);                                                           \
+    //     break
 
-#define COMP_CASE(val, action) case val: Comp (action, node, cmpNum); break;
+#define COMP_CASE(val, action) case val: Comp (action, node); break;
 
 static int PrintOP (TNode *node)
 {
-    $ static int cmpNum = 0;
     switch (node->data)
     {
         case '=':
@@ -269,32 +270,30 @@ static int PrintOP (TNode *node)
 #undef OP_CASE
 #undef COMP_CASE
 
-static int Comp (const char *action, TNode *node, int cmpNum)
+static int Comp (const char *action, TNode *node)
 {
+    static int cmpNum = 0;
+
     PrintA ("; %s", action);
     Tabs++;
 
     NodeToAsm (LEFT);
-    TNode left_var = { 0, TYPE_CONST, "temp left", 9, NULL, NULL, NULL };
-    int left_id = AddVar (0, 1, &left_var);
+    MOV_SS ("rbx", "rax ; save left to rbx");
 
     NodeToAsm (RIGHT);
+    PrintA ("cmp rbx, rax");
 
-    PrintA ("cmp [rbp - %d], rax", OFFS (left_id, 0));
-
-    PrintA ("%s %dcmp\n", action, cmpNum);
+    PrintA ("%s .%dcmp\n", action, cmpNum);
 
     // false
     PrintA ("xor rax, rax ; false");
-    PrintA ("jmp %dcmpEnd\n", cmpNum);
+    PrintA ("jmp .%dcmpEnd\n", cmpNum);
 
     // true
-    PrintA ("%dcmp:", cmpNum);
+    PrintA (".%dcmp:", cmpNum);
     PrintA ("mov rax, 1 ; true\n");
 
-    PrintA ("%dcmpEnd:\n", cmpNum);
-
-    PopVar (1);
+    PrintA (".%dcmpEnd:\n", cmpNum);
 
     Tabs--;
     cmpNum++;
@@ -484,9 +483,21 @@ int ToNASM (TNode *root, const char *name)
             "section .text\n"
 
             "_start:\n"
-            "\tpusha      ; push everything\n"
+            "\tpush rbx   ; push everything\n"
+            "\tpush rbp   ; push everything\n"
+            "\tpush r12   ; push everything\n"
+            "\tpush r13   ; push everything\n"
+            "\tpush r14   ; push everything\n"
+            "\tpush r15   ; push everything\n"
+
             "\tcall f1058 ; call main\n"
-            "\tpopa       ; restore initial regs state\n"
+
+            "\tpop rbx   ; restore initial regs state\n"
+            "\tpop rbp   ; restore initial regs state\n"
+            "\tpop r12   ; restore initial regs state\n"
+            "\tpop r13   ; restore initial regs state\n"
+            "\tpop r14   ; restore initial regs state\n"
+            "\tpop r15   ; restore initial regs state\n"
 
             "\tmov rax, 0x3C\n"
             "\txor rdi, rdi\n"
