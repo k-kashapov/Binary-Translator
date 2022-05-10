@@ -8,9 +8,14 @@ static FILE *AsmFile   = NULL;
 static int  IdsNum     = 0;
 static Id   *IdsArr    = NULL;
 static int  Tabs       = 0;
+static int  Curr_rsp   = 0;
+static int  Frame      = 0;
+
+const static int INT_LEN = 8;
 
 static void PrintA        (const char *msg, ...);
 static int  AddVar        (char isConst, int len, TNode *var);
+static int  PopVar        (int len);
 static int  Comp          (const char *action, TNode *node, int cmpNum);
 static int  PrintCallArgs (TNode *node);
 static int  PrintCALL     (TNode *node);
@@ -40,6 +45,8 @@ static int  NodeToAsm     (TNode *node);
 #define IDS     IdsArr
 #define IDNUM   IdsNum
 
+#define OFFS(id_, len_) (IDS[id_].memOfs + len_ - Frame + 1) * INT_LEN
+
 #define ASM_IDS    &IDS,       &IDNUM
 #define GLOBAL_IDS &GlobalArr, &GlobalNum
 
@@ -55,9 +62,9 @@ static const char *GeneralRegs[] = { "rbx", "r10", "r11", "r12", "r13",
                                      "r14", "r15", "r9",  "r8",  "rcx",
                                      "rdx", "rsi", "rdi" };
 
-#define RES  "rax" // ret value
-#define MEM  "rbp"
-#define FREE "rsp"
+#define RAX "rax" // ret value
+#define RBP "rbp"
+#define RSP "rsp"
 
 #define ADD_SS(dst, src) PrintA ("add %s, %s", dst, src); // args: str, str
 #define ADD_SD(dst, src) PrintA ("add %s, %d", dst, src); // args: str, num

@@ -218,7 +218,7 @@ TNode *BuildTreeFromBase (Config *io_config, char **buffer)
     $ int errors = ProcessChar (&rdr);
     if (errors)
     {
-        LOG_MSG ("Errors were detected during file reading. Stopping...\n");
+        LOG_MSG ("Errors were detected during file reading. Stopping...\n", 0);
         CreateNodeImage (rdr.init_node, "fail.png");
 
         free (source);

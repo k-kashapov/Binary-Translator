@@ -12,6 +12,12 @@ int AddId (Id **IdsArr, int *IdsNum, int64_t hash, char isConst, int len, int me
     new_id.isConst = isConst;
     new_id.len     = len;
 
+    if (NUM > 0)
+    {
+        new_id.memOfs = IDS[NUM - 1].memOfs + IDS[NUM - 1].len;
+        printf ("id added: %d; memOfs = %d\n", NUM, new_id.memOfs);
+    }
+
     $ LOG_MSG ("\tnew hash = %ld; pos = %d\n", hash, NUM);
 
     IDS[NUM++] = new_id;

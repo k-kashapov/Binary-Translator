@@ -16,18 +16,31 @@ static void PrintA (const char *msg, ...)
 
 static int AddVar (char isConst, int len, TNode *var)
 {
+    int id = AddId (ASM_IDS, var->data, isConst, len);
 
     PrintA
     (
-        "mov [%s - %d], rax ; declared %.*s", // save value to FREE + OFFSET
-        FREE, (IdsNum + 1) * 8, var->len, var->declared
+        "sub rsp, %d ; declared %.*s; [%d; %d]", // save value to stack
+        len * INT_LEN, var->len, var->declared, OFFS (id, 0), OFFS (id, len)
     );
 
-    int id = AddId (ASM_IDS, var->data, isConst, len);
+    Curr_rsp += len;
 
-    LOG_MSG ("var declared = %.*s; len = %d; id = %d", var->len, var->declared, var->len, id);
+    LOG_MSG ("var declared = %.*s; len = %d; id = %d; memOfs = %d; Frame = %d; offs = [%d; %d]",
+             var->len, var->declared, len, id, IDS[id].memOfs, Frame, OFFS (id, 0), OFFS (id, len));
 
     return id;
+}
+
+static int PopVar (int len)
+{
+    RmId (ASM_IDS, 1);
+
+    Curr_rsp -= len;
+
+    PrintA ("add rsp, %d; removed variable of len %d", len * INT_LEN, len);
+
+    return 0;
 }
 
 // ================ <Service Nodes> ===========
@@ -67,9 +80,6 @@ static int PrintCALL (TNode *node)
     PrintA ("call f%ld ; call %.*s",
             abs (LEFT->data), LEFT->len, LEFT->declared);
 
-    if (pushed)
-        ADD_SD ("rsp", pushed * 8);
-
     return 0;
 }
 
@@ -94,6 +104,8 @@ static int PrintDEF (TNode *node)
     IdsArr = (Id *) calloc (INIT_IDS_NUM, sizeof (Id));
     IdsNum = 0;
 
+    Frame = 0;
+
     long hash = abs(params->left->data);
     LOG_MSG ("functon declared: %.*s\n", params->left->len, params->left->declared);
 
@@ -108,8 +120,12 @@ static int PrintDEF (TNode *node)
          curr_param;
          curr_param = curr_param->left)
     {
-        AddId (ASM_IDS, curr_param->right->data);
-        LOG_MSG ("param added: %.*s\n", curr_param->right->len, curr_param->right->declared);
+        int id = AddId (ASM_IDS, curr_param->right->data, 0, 1);
+
+        LOG_MSG ("param added: %.*s\n"
+                 "len = 1; id = %d; memOfs = %d; Frame = %d; offs = [%d; %d]",
+                 curr_param->right->len, curr_param->right->declared,
+                 id, IDS[id].memOfs, Frame, OFFS (id, 0), OFFS (id, 1));
     }
 
     PrintSt (RIGHT);
@@ -177,19 +193,19 @@ static int PrintIF (TNode *node)
     NodeToAsm (LEFT);
 
     PrintA ("test rax, rax");
-    PrintA ("jz %dfalse", localIfNum);
+    PrintA ("jz %dfalse\n", localIfNum);
 
     TNode *decis = RIGHT;
 
     if (decis->left)
         NodeToAsm (decis->left);
-    PrintA ("jmp %denif", localIfNum);
+    PrintA ("jmp %denif\n", localIfNum);
 
-    PrintA ("%dfalse:", localIfNum);
+    PrintA ("%dfalse:\n", localIfNum);
     if (decis->right)
         NodeToAsm (decis->right);
 
-    PrintA ("%denif:", localIfNum);
+    PrintA ("%denif:\n", localIfNum);
     Tabs--;
 
     return 0;
@@ -264,7 +280,7 @@ static int Comp (const char *action, TNode *node, int cmpNum)
 
     NodeToAsm (RIGHT);
 
-    PrintA ("cmp [rsp - %d * 8], rax", left_id);
+    PrintA ("cmp [rbp - %d], rax", OFFS (left_id, 0));
 
     PrintA ("%s %dcmp\n", action, cmpNum);
 
@@ -274,10 +290,11 @@ static int Comp (const char *action, TNode *node, int cmpNum)
 
     // true
     PrintA ("%dcmp:", cmpNum);
-    PrintA ("mov rax, 1 ; true");
+    PrintA ("mov rax, 1 ; true\n");
 
     PrintA ("%dcmpEnd:\n", cmpNum);
-    RmId (ASM_IDS, 1);
+
+    PopVar (1);
 
     Tabs--;
     cmpNum++;
@@ -287,18 +304,14 @@ static int Comp (const char *action, TNode *node, int cmpNum)
 
 static int PrintNeg (TNode *node)
 {
-    PrintA ("not rax ; DOES THIS WORK? I THINK NOT");
+    PrintA ("not rax");
 
     return 0;
 }
 
 static int PrintAssn (TNode *node)
 {
-    $ int rErr = NodeToAsm (RIGHT);
-
-    LOG_MSG ("%.*s = %s", LEFT->len, LEFT->declared, RIGHT->declared);
-
-    if (rErr) return rErr;
+    LOG_MSG ("%.*s = %.*s", LEFT->len, LEFT->declared, RIGHT->len, RIGHT->declared);
 
     int id_pos = FindId (ASM_IDS, LEFT->data);
 
@@ -306,11 +319,14 @@ static int PrintAssn (TNode *node)
     if (LEFT->right)
         len = (int) LEFT->right->data;
 
-    if (id_pos >= 0)
+    if (id_pos >= Frame)
     {
-        int offset = id_pos + len;
+        int rErr = NodeToAsm (RIGHT);
 
-        PrintA ("mov [%s - %d], rax ; %.*s = rax", FREE, offset * 8, LEFT->len, LEFT->declared);
+        if (rErr) return rErr;
+
+        PrintA ("mov [rsp - %d], rax ; %.*s = rax",
+                OFFS (id_pos, len), LEFT->len, LEFT->declared);
     }
     else
     {
@@ -362,16 +378,16 @@ static int PrintVar (TNode *node)
     int id_pos = FindId (ASM_IDS, DATA);
     LOG_MSG ("Hash found on pos = %d\n", id_pos);
 
-    if (id_pos >= 0)
+    if (id_pos >= Frame)
     {
-        int offset = id_pos;
+        int len = 0;
 
-        if (RIGHT && RIGHT->data != 0)
+        if (RIGHT)
         {
-            offset += (int) RIGHT->data;
+            len = (int) RIGHT->data;
         }
 
-        PrintA ("mov rax, [%s - %d] ; %.*s", FREE, offset * 8, LEN, DECL);
+        PrintA ("mov rax, [%s - %d] ; %.*s", RBP, OFFS (id_pos, len), LEN, DECL);
     }
     else
     {

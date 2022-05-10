@@ -17,7 +17,7 @@ langBackDepends = main.cpp src/ToNASM.cpp src/TreeToAsm.cpp
 
 OBJECTS = $(patsubst %.cpp, %.o, $(langFrontDepends))
 
-$(OBJECTS): $(langFrontDepends)
+obj/*.o: $(langFrontDepends)
 	   		g++ $(basicFlags) $(langFrontDepends) -c
 	   		mv *.o obj/
 	 
