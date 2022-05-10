@@ -50,18 +50,6 @@ static int  NodeToAsm     (TNode *node);
 #define ASM_IDS    &IDS,       &IDNUM
 #define GLOBAL_IDS &GlobalArr, &GlobalNum
 
-// NOT IMPLEMENTED YET:
-// GeneralRegs are used to store variables. The order they are written in
-// is essential, because this the order they will be assigned.
-// This way we try to reduce the amount of memory usage: rdi is used a lot
-// to pass arguments
-
-static const int  VarRegsNum     = 12;
-static const int  MaxArgsRegs    = 6;
-static const char *GeneralRegs[] = { "rbx", "r10", "r11", "r12", "r13",
-                                     "r14", "r15", "r9",  "r8",  "rcx",
-                                     "rdx", "rsi", "rdi" };
-
 #define RAX "rax" // ret value
 #define RBP "rbp"
 #define RSP "rsp"

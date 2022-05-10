@@ -53,23 +53,16 @@ static int PrintCallArgs (TNode *node)
 
     PrintA ("; call args");
 
-    for (int curr_register = 0; curr_register < MaxArgsRegs && CURR; curr_register++)
+    int pushed = 0;
+
+    for (int pushed = 0; CURR; pushed++)
     {
         NodeToAsm (RIGHT); // Evaluate the argument
 
-        // mov arg to register for fastcall
-        MOV_SS (GeneralRegs[VarRegsNum - curr_register], "rax");
+        // push to stack
+        PrintA ("mov [rsp - %d], rax", 16 + pushed * 8);
 
         CURR = LEFT;
-    }
-
-    int pushed = 0;
-
-    while (CURR)
-    {
-        pushed++;
-        NodeToAsm (RIGHT);
-        PUSH ("rax");         // pass using the stack
     }
 
     return pushed;
@@ -89,6 +82,8 @@ static int PrintRET (TNode *node)
 {
     $ int rErr = NodeToAsm (RIGHT);
     if (rErr) return rErr;
+
+    MOV_SS ("rsp", "rbp");
 
     POP ("rbp ; stack frame return\n");
 
@@ -118,9 +113,11 @@ static int PrintDEF (TNode *node)
     PrintA ("push rbp ; create stack frame");
     MOV_SS ("rbp", "rsp\n");
 
+    int params_num = 0;
+
     for (TNode *curr_param = params->right;
          curr_param;
-         curr_param = curr_param->left)
+         curr_param = curr_param->left, params_num++)
     {
         int id = AddId (ASM_IDS, curr_param->right->data, 0, 1);
 
@@ -130,7 +127,12 @@ static int PrintDEF (TNode *node)
                  id, IDS[id].memOfs + 1, Frame, OFFS (id, 0), OFFS (id, 1));
     }
 
+    PrintA ("sub rsp, %d ; jump over parameters\n", params_num * INT_LEN);
+    Curr_rsp += params_num;
+
     PrintSt (RIGHT);
+
+    Curr_rsp -= params_num;
 
     Tabs--;
 
@@ -360,7 +362,7 @@ static int PrintAssn (TNode *node)
 
         if (rErr) return rErr;
 
-        PrintA ("mov [rsp - %d], rax ; %.*s = rax",
+        PrintA ("mov [rbp - %d], rax ; %.*s = rax",
                 OFFS (id_pos, len), LEFT->len, LEFT->declared);
     }
     else

@@ -51,7 +51,7 @@ int main (int argc, const char **argv)
             return 0;
         }
 
-        // CreateNodeImage (res, "res.png");
+        CreateNodeImage (res, "res.png");
         SaveNode (res, "base.txt");
 
         if (io_config.settings & NASM)
