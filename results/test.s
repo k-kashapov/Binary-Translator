@@ -1,5 +1,10 @@
 global _start
+section .bss
+
+inputbuf: resq 64
+
 section .text
+
 _start:
 	push rbx   ; push everything
 	push rbp   ; push everything
@@ -7,13 +12,16 @@ _start:
 	push r13   ; push everything
 	push r14   ; push everything
 	push r15   ; push everything
+
 	call f1058 ; call main
+
 	pop rbx   ; restore initial regs state
 	pop rbp   ; restore initial regs state
 	pop r12   ; restore initial regs state
 	pop r13   ; restore initial regs state
 	pop r14   ; restore initial regs state
 	pop r15   ; restore initial regs state
+
 	mov rax, 0x3C
 	xor rdi, rdi
 	syscall
@@ -55,6 +63,35 @@ f7938: ; def Квадрат
 
 		sub rsp, 8 ; declared Дискриминант; [32; 40]
 		
+					mov rax, [rbp - 24] ; ЛошедьВ
+					push rax
+
+					mov rax, [rbp - 8] ; ЛошедьА
+					pop rbx
+
+					mul rbx
+
+				push rax
+
+				mov rax, 4 ; const value
+				pop rbx
+
+				mul rbx
+
+			push rax
+
+				mov rax, [rbp - 16] ; ЛошедьБ
+				push rax
+
+				mov rax, [rbp - 16] ; ЛошедьБ
+				pop rbx
+
+				mul rbx
+
+			pop rbx
+
+			sub rax, rbx
+
 		mov [rsp - 32], rax ; Дискриминант = rax
 		
 		; if statement
@@ -86,12 +123,78 @@ f7938: ; def Квадрат
 			
 			sub rsp, 8 ; declared Корень; [48; 56]
 			
+					mov rax, 2 ; const value
+					push rax
+
+					mov rax, 1 ; const value
+					pop rbx
+
+					div rbx
+
+				push rax
+
+				mov rax, [rbp - 32] ; Дискриминант
+				pop rbx
+
+				; pow rax, rbx
+
 			mov [rsp - 48], rax ; Корень = rax
 			
 			sub rsp, 16 ; declared Корни; [56; 72]
 			
+					mov rax, 2 ; const value
+					push rax
+
+					mov rax, [rbp - 8] ; ЛошедьА
+					pop rbx
+
+					mul rbx
+
+				push rax
+
+					mov rax, [rbp - 16] ; ЛошедьБ
+					push rax
+
+					mov rax, [rbp - 48] ; Корень
+					pop rbx
+
+					sub rax, rbx
+
+				pop rbx
+
+				div rbx
+
 			mov [rsp - 56], rax ; Корни = rax
 			
+					mov rax, 2 ; const value
+					push rax
+
+					mov rax, [rbp - 8] ; ЛошедьА
+					pop rbx
+
+					mul rbx
+
+				push rax
+
+						mov rax, [rbp - 16] ; ЛошедьБ
+						push rax
+
+						mov rax, [rbp - 48] ; Корень
+						pop rbx
+
+						add rax, rbx
+
+					push rax
+
+					mov rax, 0 ; const value
+					pop rbx
+
+					sub rax, rbx
+
+				pop rbx
+
+				div rbx
+
 			mov [rsp - 64], rax ; Корни = rax
 			
 			mov rax, [rbp - 56] ; Корни
@@ -106,6 +209,14 @@ f7938: ; def Квадрат
 
 			sub rsp, 8 ; declared Жопа; [72; 80]
 			
+				mov rax, 1 ; const value
+				push rax
+
+				mov rax, 0 ; const value
+				pop rbx
+
+				sub rax, rbx
+
 			mov [rsp - 72], rax ; Жопа = rax
 			
 			mov rax, [rbp - 72] ; Жопа
@@ -222,6 +333,14 @@ f8991: ; def Линейная
 
 			sub rsp, 8 ; declared Жопа; [40; 48]
 			
+				mov rax, 1 ; const value
+				push rax
+
+				mov rax, 0 ; const value
+				pop rbx
+
+				sub rax, rbx
+
 			mov [rsp - 40], rax ; Жопа = rax
 			
 			mov rax, [rbp - 40] ; Жопа
@@ -242,6 +361,21 @@ f8991: ; def Линейная
 			
 			sub rsp, 8 ; declared Результат; [48; 56]
 			
+					mov rax, [rbp - 8] ; ЛошедьК
+					push rax
+
+					mov rax, [rbp - 16] ; ЛошедьБ
+					pop rbx
+
+					div rbx
+
+				push rax
+
+				mov rax, 0 ; const value
+				pop rbx
+
+				sub rax, rbx
+
 			mov [rsp - 48], rax ; Результат = rax
 			
 			mov rax, [rbp - 48] ; Результат

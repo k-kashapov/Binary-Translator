@@ -230,12 +230,16 @@ static int PrintSERV (TNode *node)
 
 // ================= <Operations> =============
 
-#define OP_CASE(op, act) break;
-    // case op:                                                                    \
-    //     NodeToAsm (LEFT);                                                       \
-    //     NodeToAsm (RIGHT);                                                      \
-    //     PrintA (act);                                                           \
-    //     break
+#define OP_CASE(op, act)                                                        \
+    case op:                                                                    \
+        Tabs++;                                                                 \
+        NodeToAsm (RIGHT);                                                      \
+        PUSH ("rax\n");                                                         \
+        NodeToAsm (LEFT);                                                       \
+        POP ("rbx\n");                                                          \
+        PrintA (act " rax, rbx\n");                                             \
+        Tabs--;                                                                 \
+        break;
 
 #define COMP_CASE(val, action) case val: Comp (action, node); break;
 
@@ -255,11 +259,43 @@ static int PrintOP (TNode *node)
         COMP_CASE (NE, "jn");
         COMP_CASE ('>', "ja");
         COMP_CASE ('<', "jb");
-        OP_CASE ('+', "add");
-        OP_CASE ('-', "sub");
-        OP_CASE ('*', "mul");
-        OP_CASE ('/', "div");
-        OP_CASE ('^', "pow");
+        OP_CASE   ('+', "add");
+        OP_CASE   ('-', "sub");
+
+        case '*':
+        {
+            Tabs++;
+
+            NodeToAsm (RIGHT);
+            PUSH ("rax\n");
+
+            NodeToAsm (LEFT);
+            POP ("rbx\n");
+
+            PrintA ("mul rbx\n");
+
+            Tabs--;
+            break;
+        }
+
+        case '/':
+        {
+            Tabs++;
+
+            NodeToAsm (RIGHT);
+            PUSH ("rax\n");
+
+            NodeToAsm (LEFT);
+            POP ("rbx\n");
+
+            PrintA ("div rbx\n");
+
+            Tabs--;
+            break;
+        }
+
+        OP_CASE   ('^', "; pow");
+
         default:
             LOG_ERR ("Unknown operand: %c\n", (char) node->data);
             break;
@@ -480,7 +516,11 @@ int ToNASM (TNode *root, const char *name)
     // main func hash = f1058
 
     PrintA ("global _start\n"
-            "section .text\n"
+            "section .bss\n\n"
+
+            "inputbuf: resq 64\n\n"
+
+            "section .text\n\n"
 
             "_start:\n"
             "\tpush rbx   ; push everything\n"
@@ -488,16 +528,16 @@ int ToNASM (TNode *root, const char *name)
             "\tpush r12   ; push everything\n"
             "\tpush r13   ; push everything\n"
             "\tpush r14   ; push everything\n"
-            "\tpush r15   ; push everything\n"
+            "\tpush r15   ; push everything\n\n"
 
-            "\tcall f1058 ; call main\n"
+            "\tcall f1058 ; call main\n\n"
 
             "\tpop rbx   ; restore initial regs state\n"
             "\tpop rbp   ; restore initial regs state\n"
             "\tpop r12   ; restore initial regs state\n"
             "\tpop r13   ; restore initial regs state\n"
             "\tpop r14   ; restore initial regs state\n"
-            "\tpop r15   ; restore initial regs state\n"
+            "\tpop r15   ; restore initial regs state\n\n"
 
             "\tmov rax, 0x3C\n"
             "\txor rdi, rdi\n"
