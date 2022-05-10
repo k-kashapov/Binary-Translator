@@ -73,9 +73,9 @@ f1058: ; def main
 	
 	; call args
 	mov rax, [rbp - 16] ; Шесть
-	mov [rsp - 16], rax
-	mov rax, [rbp - 24] ; Два
 	mov [rsp - 24], rax
+	mov rax, [rbp - 24] ; Два
+	mov [rsp - 32], rax
 	call f7639 ; call Функция
 	mov [rbp - 8], rax ; ЛошедьА = rax
 	

@@ -12,6 +12,7 @@ int AddId (Id **IdsArr, int *IdsNum, int64_t hash, char isConst, int len, int me
     new_id.hash    = hash;
     new_id.isConst = isConst;
     new_id.len     = len;
+    new_id.memOfs  = 1;
 
     if (NUM > 0)
     {

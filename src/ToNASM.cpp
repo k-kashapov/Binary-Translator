@@ -60,7 +60,7 @@ static int PrintCallArgs (TNode *node)
         NodeToAsm (RIGHT); // Evaluate the argument
 
         // push to stack
-        PrintA ("mov [rsp - %d], rax", 16 + pushed * 8);
+        PrintA ("mov [rsp - %d], rax", 24 + pushed * 8);
 
         CURR = LEFT;
     }
@@ -356,16 +356,10 @@ static int PrintAssn (TNode *node)
     if (LEFT->right)
         len = (int) LEFT->right->data;
 
-    if (id_pos >= Frame)
-    {
-        int rErr = NodeToAsm (RIGHT);
+    int rErr = NodeToAsm (RIGHT);
+    if (rErr) return rErr;
 
-        if (rErr) return rErr;
-
-        PrintA ("mov [rbp - %d], rax ; %.*s = rax",
-                OFFS (id_pos, len), LEFT->len, LEFT->declared);
-    }
-    else
+    if (id_pos < Frame)
     {
         char isConst = 0;
         if (LEFT->left) isConst = 1;
@@ -375,8 +369,13 @@ static int PrintAssn (TNode *node)
             len = 1;
         }
 
-        AddVar (isConst, len, LEFT);
+        id_pos = AddVar (isConst, len, LEFT);
+
+        len--;
     }
+
+    PrintA ("mov [rbp - %d], rax ; %.*s = rax",
+            OFFS (id_pos, len), LEFT->len, LEFT->declared);
 
     return 0;
 }

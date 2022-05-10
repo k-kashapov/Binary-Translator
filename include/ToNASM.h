@@ -45,7 +45,7 @@ static int  NodeToAsm     (TNode *node);
 #define IDS     IdsArr
 #define IDNUM   IdsNum
 
-#define OFFS(id_, len_) (IDS[id_].memOfs + len_ - Frame + 1) * INT_LEN
+#define OFFS(id_, len_) (IDS[id_].memOfs + len_ - Frame) * INT_LEN
 
 #define ASM_IDS    &IDS,       &IDNUM
 #define GLOBAL_IDS &GlobalArr, &GlobalNum
