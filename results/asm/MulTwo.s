@@ -26,33 +26,6 @@ _start:
 	xor rdi, rdi
 	syscall
 
-f7639: ; def Функция
-	push rbp ; create stack frame
-	mov rbp, rsp
-
-	sub rsp, 16 ; jump over parameters
-
-	mov rax, 0 ; const value
-	sub rsp, 8 ; declared Разность; [24; 32]
-	mov [rbp - 24], rax ; Разность = rax
-	
-		mov rax, [rbp - 16] ; Правый
-		push rax
-
-		mov rax, [rbp - 8] ; Левый
-		pop rbx
-
-		sub rax, rbx
-
-	mov [rbp - 24], rax ; Разность = rax
-	
-	mov rax, [rbp - 24] ; Разность
-	mov rsp, rbp
-	pop rbp ; stack frame return
-
-	ret
-	
-
 f1058: ; def main
 	push rbp ; create stack frame
 	mov rbp, rsp
@@ -63,21 +36,29 @@ f1058: ; def main
 	sub rsp, 8 ; declared ЛошедьА; [8; 16]
 	mov [rbp - 8], rax ; ЛошедьА = rax
 	
-	mov rax, 6 ; const value
-	sub rsp, 8 ; declared Шесть; [16; 24]
-	mov [rbp - 16], rax ; Шесть = rax
+	mov rax, 0 ; const value
+	sub rsp, 8 ; declared ЛошедьБ; [16; 24]
+	mov [rbp - 16], rax ; ЛошедьБ = rax
+	
+	mov rax, 0 ; const value
+	sub rsp, 8 ; declared ЛошедьВ; [24; 32]
+	mov [rbp - 24], rax ; ЛошедьВ = rax
 	
 	mov rax, 2 ; const value
-	sub rsp, 8 ; declared Два; [24; 32]
-	mov [rbp - 24], rax ; Два = rax
-	
-	; call args
-	mov rax, [rbp - 16] ; Шесть
-	mov [rsp - 16], rax
-	mov rax, [rbp - 24] ; Два
-	mov [rsp - 24], rax
-	call f7639 ; call Функция
 	mov [rbp - 8], rax ; ЛошедьА = rax
+	
+	mov rax, 3 ; const value
+	mov [rbp - 16], rax ; ЛошедьБ = rax
+	
+		mov rax, [rbp - 16] ; ЛошедьБ
+		push rax
+
+		mov rax, [rbp - 8] ; ЛошедьА
+		pop rbx
+
+		mul rbx
+
+	mov [rbp - 24], rax ; ЛошедьВ = rax
 	
 	mov rax, 0 ; const value
 	mov rsp, rbp

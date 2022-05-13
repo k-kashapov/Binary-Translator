@@ -23,3 +23,37 @@ obj/*.o: $(langFrontDepends)
 	 
 lang: obj/*.o $(langBackDepends)
 	  g++ $(basicFlags) $(langBackDepends) obj/*.o -o lang.exe
+
+# ================= <NASM Tests> ===================
+ANEK_DIR    = examples
+SRC_DIR     = results/asm
+RES_OBJ_DIR = results/obj
+RES_EXE_DIR = results/exe
+
+tests: make_tests
+	   @echo "\nTesting..."
+	   @$(foreach file, $(wildcard $(RES_EXE_DIR)/*), ./$(file); echo Test "$(file)": $$?;)
+
+make_tests:
+		@$(foreach file, $(wildcard $(ANEK_DIR)/*.anek), make $(subst $(ANEK_DIR),$(RES_EXE_DIR),$(subst .anek,.exe, $(file)));)
+
+clean_tests:
+		@$(foreach file, $(wildcard $(RES_EXE_DIR)/*.exe), rm $(file);)
+
+$(RES_EXE_DIR)/%.exe: $(RES_OBJ_DIR)/%.o
+					  @echo
+					  @echo Linking $@
+					  @ld $^ -o $@
+					  @echo
+
+$(RES_OBJ_DIR)/%.o: $(SRC_DIR)/%.s
+					@echo
+					@echo Compiling $@
+					@nasm -f elf64 -Wall $^ -o $@
+					@echo
+
+$(SRC_DIR)/%.s: $(ANEK_DIR)/%.anek
+				@echo
+				@echo To NASM $@
+				@./lang_no_img.exe -i $^ -o $@ -S
+				@echo
