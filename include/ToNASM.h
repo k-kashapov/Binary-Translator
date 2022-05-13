@@ -59,6 +59,14 @@ static int  NodeToAsm     (TNode *node);
 #define SUB_SD(dst, src) PrintA ("sub %s, %d", dst, src); // args: str, num
 #define MOV_SS(dst, src) PrintA ("mov %s, %s", dst, src);
 
+#define SHR(tgt, num) PrintA ("shr %s, %d ; pseudo-float emul", tgt, num);
+#define SHL(tgt, num) PrintA ("shl %s, %d ; pseudo-float emul", tgt, num);
+
+#define NUMS_AFTER_POINT 9
+
+#define FLOAT_R(tgt) SHR (tgt, NUMS_AFTER_POINT)
+#define FLOAT_L(tgt) SHL (tgt, NUMS_AFTER_POINT)
+
 #define INC(trgt) PrintA ("inc %s", trgt);
 #define PUSH(src) PrintA ("push %s", src);
 #define POP(dst)  PrintA ("pop %s", dst);

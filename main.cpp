@@ -51,8 +51,13 @@ int main (int argc, const char **argv)
             return 0;
         }
 
+        #ifdef CREATE_IMG
         CreateNodeImage (res, "res.png");
-        // SaveNode (res, "base.txt");
+        #endif
+
+        #ifdef SAVE_TO_BASE
+        SaveNode (res, "base.txt");
+        #endif
 
         if (io_config.settings & NASM)
         {

@@ -36,6 +36,8 @@ static int PopVar (int len)
 {
     int id = RmId (ASM_IDS, 1);
 
+    ADD_SD ("rsp", INT_LEN * len);
+
     Curr_rsp -= len;
 
     LOG_MSG ("Popped variable of len %d; new memOfs = %d", len, IDS[id].memOfs + 1);
@@ -147,6 +149,8 @@ static int PrintIN (TNode *node)
 {
     $ if (!node) return 1;
     PrintA ("; in ??????????????????????????");
+    FLOAT_L ("rax");
+
     return 0;
 }
 
@@ -155,6 +159,7 @@ static int PrintOUT (TNode *node)
     $ if (!node) return 1;
     NodeToAsm (RIGHT);
 
+    FLOAT_R ("rax");
     PrintA ("; out !!!!!!!!!!!!!!!!!!!!!!!!");
 
     return 0;
@@ -163,6 +168,11 @@ static int PrintOUT (TNode *node)
 static int PrintWHILE (TNode *node)
 {
     static int whileNum = 0;
+    int    init_rsp     = Curr_rsp;
+    int    init_var_num = IdsNum;
+
+    MOV_SS ("rcx", "rsp ; save rsp to rcx");
+
     int localWhileNum = whileNum;
     whileNum++;
 
@@ -178,10 +188,15 @@ static int PrintWHILE (TNode *node)
     if (RIGHT)
         NodeToAsm (RIGHT);
 
+    MOV_SS ("rsp", "rcx ; forget any variables created during the loop");
     PrintA ("jmp .%dwhile", localWhileNum);
 
     PrintA (".%dwhileEnd:", localWhileNum);
     Tabs--;
+
+    RmId (ASM_IDS, IdsNum - init_var_num);
+
+    Curr_rsp = init_rsp;
 
     return 0;
 }
@@ -276,6 +291,8 @@ static int PrintOP (TNode *node)
 
             PrintA ("mul rbx\n");
 
+            FLOAT_R ("rax");
+
             Tabs--;
             break;
         }
@@ -289,6 +306,7 @@ static int PrintOP (TNode *node)
 
             NodeToAsm (LEFT);
             POP ("rbx\n");
+            FLOAT_R ("rbx");
 
             PrintA ("div rbx\n");
 
@@ -384,7 +402,7 @@ static int PrintAssn (TNode *node)
 
 static int PrintConst (TNode *node)
 {
-    PrintA ("mov rax, %d ; const value", DATA);
+    PrintA ("mov rax, %d ; const value << 9", DATA << NUMS_AFTER_POINT);
 
     return 0;
 }
@@ -517,6 +535,8 @@ int ToNASM (TNode *root, const char *name)
     // main func hash = f1058
 
     PrintA ("global _start\n"
+            "extern printf, scanf, pow\n"
+
             "section .bss\n\n"
 
             "inputbuf: resq 64\n\n"
