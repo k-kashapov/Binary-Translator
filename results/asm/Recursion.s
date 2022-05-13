@@ -32,27 +32,67 @@ _start:
 	xor rdi, rdi
 	syscall
 
-f7639: ; def Функция
+f11528: ; def Факториал
 	push rbp ; create stack frame
 	mov rbp, rsp
 
-	sub rsp, 16 ; jump over parameters
+	sub rsp, 8 ; jump over parameters
 
 	mov rax, 0 ; const value << 9
-	sub rsp, 8 ; declared Разность; [24; 32]
-	mov [rbp - 24], rax ; Разность = rax
+	sub rsp, 8 ; declared Результат; [16; 24]
+	mov [rbp - 16], rax ; Результат = rax
 	
-		mov rax, [rbp - 16] ; Правый
+	; if statement
+		; ja
+			mov rax, [rbp - 8] ; Итератор
+			mov rbx, rax ; save left to rbx
+			mov rax, 512 ; const value << 9
+			cmp rbx, rax
+			ja .0cmp
+
+			xor rax, rax ; false
+			jmp .0cmpEnd
+
+			.0cmp:
+			mov rax, 1 ; true
+
+			.0cmpEnd:
+
+		test rax, rax
+		je .0false
+
+		; call args
+			mov rax, 512 ; const value << 9
+			push rax
+
+			mov rax, [rbp - 8] ; Итератор
+			pop rbx
+
+			sub rax, rbx
+
+		mov [rsp - 24], rax
+		call f11528 ; call Факториал
+		mov [rbp - 16], rax ; Результат = rax
+		
+		jmp .0enif
+
+		.0false:
+
+		mov rax, 512 ; const value << 9
+		mov [rbp - 16], rax ; Результат = rax
+		
+		.0enif:
+
+	
+		mov rax, [rbp - 8] ; Итератор
 		push rax
 
-		mov rax, [rbp - 8] ; Левый
+		mov rax, [rbp - 16] ; Результат
 		pop rbx
 
-		sub rax, rbx
+		mul rbx
 
-	mov [rbp - 24], rax ; Разность = rax
-	
-	mov rax, [rbp - 24] ; Разность
+		shr rax, 9 ; pseudo-float emul
 	mov rsp, rbp
 	pop rbp ; stack frame return
 
@@ -66,26 +106,20 @@ f1058: ; def main
 	sub rsp, 0 ; jump over parameters
 
 	mov rax, 0 ; const value << 9
-	sub rsp, 8 ; declared ЛошедьА; [8; 16]
-	mov [rbp - 8], rax ; ЛошедьА = rax
+	sub rsp, 8 ; declared Рез; [8; 16]
+	mov [rbp - 8], rax ; Рез = rax
 	
 	mov rax, 3072 ; const value << 9
 	sub rsp, 8 ; declared Шесть; [16; 24]
 	mov [rbp - 16], rax ; Шесть = rax
 	
-	mov rax, 1024 ; const value << 9
-	sub rsp, 8 ; declared Два; [24; 32]
-	mov [rbp - 24], rax ; Два = rax
-	
 	; call args
 	mov rax, [rbp - 16] ; Шесть
 	mov [rsp - 24], rax
-	mov rax, [rbp - 24] ; Два
-	mov [rsp - 32], rax
-	call f7639 ; call Функция
-	mov [rbp - 8], rax ; ЛошедьА = rax
+	call f11528 ; call Факториал
+	mov [rbp - 8], rax ; Рез = rax
 	
-	mov rax, 0 ; const value << 9
+	mov rax, [rbp - 8] ; Рез
 	mov rsp, rbp
 	pop rbp ; stack frame return
 

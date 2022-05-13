@@ -1,7 +1,13 @@
 global _start
+extern printf, scanf, pow, fflush, stdout
 section .bss
 
-inputbuf: resq 64
+inputbuf: resq 8
+
+section .data
+
+in_str:  db "%d"                         ; format string for scanf
+out_str: db ">> %d + %d / 512", 0xA ; format string for printf
 
 section .text
 
@@ -32,22 +38,22 @@ f1058: ; def main
 
 	sub rsp, 0 ; jump over parameters
 
-	mov rax, 0 ; const value
+	mov rax, 0 ; const value << 9
 	sub rsp, 8 ; declared ЛошедьА; [8; 16]
 	mov [rbp - 8], rax ; ЛошедьА = rax
 	
-	mov rax, 0 ; const value
+	mov rax, 0 ; const value << 9
 	sub rsp, 8 ; declared ЛошедьБ; [16; 24]
 	mov [rbp - 16], rax ; ЛошедьБ = rax
 	
-	mov rax, 0 ; const value
+	mov rax, 0 ; const value << 9
 	sub rsp, 8 ; declared ЛошедьВ; [24; 32]
 	mov [rbp - 24], rax ; ЛошедьВ = rax
 	
-	mov rax, 2 ; const value
+	mov rax, 1024 ; const value << 9
 	mov [rbp - 8], rax ; ЛошедьА = rax
 	
-	mov rax, 3 ; const value
+	mov rax, 1536 ; const value << 9
 	mov [rbp - 16], rax ; ЛошедьБ = rax
 	
 		mov rax, [rbp - 16] ; ЛошедьБ
@@ -60,7 +66,7 @@ f1058: ; def main
 
 	mov [rbp - 24], rax ; ЛошедьВ = rax
 	
-	mov rax, 0 ; const value
+	mov rax, 0 ; const value << 9
 	mov rsp, rbp
 	pop rbp ; stack frame return
 

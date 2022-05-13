@@ -39,34 +39,24 @@ f1058: ; def main
 	sub rsp, 0 ; jump over parameters
 
 	mov rax, 0 ; const value << 9
-	sub rsp, 8 ; declared ЛошедьА; [8; 16]
-	mov [rbp - 8], rax ; ЛошедьА = rax
+	sub rsp, 8 ; declared ЛошедьБ; [8; 16]
+	mov [rbp - 8], rax ; ЛошедьБ = rax
 	
-	mov rax, 0 ; const value << 9
-	sub rsp, 8 ; declared ЛошедьБ; [16; 24]
-	mov [rbp - 16], rax ; ЛошедьБ = rax
+	mov rax, 4608 ; const value << 9
+	mov [rbp - 8], rax ; ЛошедьБ = rax
 	
-	mov rax, 0 ; const value << 9
-	sub rsp, 8 ; declared ЛошедьВ; [24; 32]
-	mov [rbp - 24], rax ; ЛошедьВ = rax
+	mov rax, [rbp - 8] ; ЛошедьБ
+	lea rdi, [out_str]
+	mov rsi, rax
+	shr rsi, 9 ; pseudo-float emul
+	mov rdx, rax
+	and rdx, 511 ; mask for last 9 bits
+	xor rax, rax
+	call printf
+	mov rdi, [stdout]
+	call fflush
 	
-	mov rax, 1024 ; const value << 9
-	mov [rbp - 8], rax ; ЛошедьА = rax
-	
-	mov rax, 1536 ; const value << 9
-	mov [rbp - 16], rax ; ЛошедьБ = rax
-	
-		mov rax, [rbp - 16] ; ЛошедьБ
-		push rax
-
-		mov rax, [rbp - 8] ; ЛошедьА
-		pop rbx
-
-		sub rax, rbx
-
-	mov [rbp - 24], rax ; ЛошедьВ = rax
-	
-	mov rax, 0 ; const value << 9
+	mov rax, [rbp - 8] ; ЛошедьБ
 	mov rsp, rbp
 	pop rbp ; stack frame return
 

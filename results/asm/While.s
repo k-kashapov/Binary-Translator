@@ -46,27 +46,71 @@ f1058: ; def main
 	sub rsp, 8 ; declared ЛошедьБ; [16; 24]
 	mov [rbp - 16], rax ; ЛошедьБ = rax
 	
-	mov rax, 0 ; const value << 9
-	sub rsp, 8 ; declared ЛошедьВ; [24; 32]
-	mov [rbp - 24], rax ; ЛошедьВ = rax
-	
-	mov rax, 1024 ; const value << 9
+	mov rax, 5120 ; const value << 9
 	mov [rbp - 8], rax ; ЛошедьА = rax
 	
-	mov rax, 1536 ; const value << 9
+	mov rax, 3072 ; const value << 9
 	mov [rbp - 16], rax ; ЛошедьБ = rax
 	
-		mov rax, [rbp - 16] ; ЛошедьБ
-		push rax
+	mov r12, rsp ; save rsp to rcx
+	; while
+		.0while:
+		; ja
+			mov rax, [rbp - 8] ; ЛошедьА
+			mov rbx, rax ; save left to rbx
+			mov rax, 512 ; const value << 9
+			cmp rbx, rax
+			ja .0cmp
 
-		mov rax, [rbp - 8] ; ЛошедьА
-		pop rbx
+			xor rax, rax ; false
+			jmp .0cmpEnd
 
-		sub rax, rbx
+			.0cmp:
+			mov rax, 1 ; true
 
-	mov [rbp - 24], rax ; ЛошедьВ = rax
+			.0cmpEnd:
+
+		test rax, rax
+		je .0whileEnd
+		mov rax, 0 ; const value << 9
+		sub rsp, 8 ; declared Временно; [24; 32]
+		mov [rbp - 24], rax ; Временно = rax
+		
+			mov rax, 512 ; const value << 9
+			push rax
+
+			mov rax, [rbp - 24] ; Временно
+			pop rbx
+
+			add rax, rbx
+
+		mov [rbp - 24], rax ; Временно = rax
+		
+			mov rax, [rbp - 24] ; Временно
+			push rax
+
+			mov rax, [rbp - 16] ; ЛошедьБ
+			pop rbx
+
+			add rax, rbx
+
+		mov [rbp - 16], rax ; ЛошедьБ = rax
+		
+			mov rax, 512 ; const value << 9
+			push rax
+
+			mov rax, [rbp - 8] ; ЛошедьА
+			pop rbx
+
+			sub rax, rbx
+
+		mov [rbp - 8], rax ; ЛошедьА = rax
+		
+		mov rsp, r12 ; forget any variables created during the loop
+		jmp .0while
+		.0whileEnd:
 	
-	mov rax, 0 ; const value << 9
+	mov rax, [rbp - 16] ; ЛошедьБ
 	mov rsp, rbp
 	pop rbp ; stack frame return
 

@@ -148,8 +148,16 @@ static int PrintDEF (TNode *node)
 static int PrintIN (TNode *node)
 {
     $ if (!node) return 1;
-    PrintA ("; in ??????????????????????????");
-    FLOAT_L ("rax");
+
+    // MOV_SS ("rdi", "format_str ; format string for float value");
+    // MOV_SS ("rsi", "inputbuf   ; buffer for inputted value");
+    //
+    // PrintA ("call scanf");
+
+    // MOV_SD ("rax", 0);
+    // MOV_SD ("rdi", 1);
+
+    // FLOAT_L ("rax");
 
     return 0;
 }
@@ -159,8 +167,19 @@ static int PrintOUT (TNode *node)
     $ if (!node) return 1;
     NodeToAsm (RIGHT);
 
-    FLOAT_R ("rax");
-    PrintA ("; out !!!!!!!!!!!!!!!!!!!!!!!!");
+    PrintA ("lea rdi, [out_str]");
+
+    MOV_SS  ("rsi", "rax");
+    FLOAT_R ("rsi");
+
+    MOV_SS ("rdx", "rax");
+    PrintA ("and rdx, %d ; mask for last 9 bits", (1 << NUMS_AFTER_POINT) - 1);
+
+    PrintA ("xor rax, rax");
+    PrintA ("call printf");
+
+    MOV_SS ("rdi", "[stdout]");
+    PrintA ("call fflush");
 
     return 0;
 }
@@ -171,7 +190,7 @@ static int PrintWHILE (TNode *node)
     int    init_rsp     = Curr_rsp;
     int    init_var_num = IdsNum;
 
-    MOV_SS ("rcx", "rsp ; save rsp to rcx");
+    MOV_SS ("r12", "rsp ; save rsp to rcx");
 
     int localWhileNum = whileNum;
     whileNum++;
@@ -188,7 +207,7 @@ static int PrintWHILE (TNode *node)
     if (RIGHT)
         NodeToAsm (RIGHT);
 
-    MOV_SS ("rsp", "rcx ; forget any variables created during the loop");
+    MOV_SS ("rsp", "r12 ; forget any variables created during the loop");
     PrintA ("jmp .%dwhile", localWhileNum);
 
     PrintA (".%dwhileEnd:", localWhileNum);
@@ -307,6 +326,8 @@ static int PrintOP (TNode *node)
             NodeToAsm (LEFT);
             POP ("rbx\n");
             FLOAT_R ("rbx");
+
+            MOV_SD ("rdx", 0);
 
             PrintA ("div rbx\n");
 
@@ -535,11 +556,16 @@ int ToNASM (TNode *root, const char *name)
     // main func hash = f1058
 
     PrintA ("global _start\n"
-            "extern printf, scanf, pow\n"
+            "extern printf, scanf, pow, fflush, stdout\n"
 
             "section .bss\n\n"
 
-            "inputbuf: resq 64\n\n"
+            "inputbuf: resq 8\n\n"
+
+            "section .data\n\n"
+
+            "in_str:  db \"%%d\"                         ; format string for scanf\n"
+            "out_str: db \">> %%d + %%d / %d\", 0xA ; format string for printf\n\n"
 
             "section .text\n\n"
 
@@ -562,7 +588,7 @@ int ToNASM (TNode *root, const char *name)
 
             "\tmov rax, 0x3C\n"
             "\txor rdi, rdi\n"
-            "\tsyscall\n");
+            "\tsyscall\n", 1 << NUMS_AFTER_POINT);
 
     int err = NodeToAsm (root);
     if (err) printf ("Node to asm: errors occured: %d", err);

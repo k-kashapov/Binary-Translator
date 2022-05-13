@@ -47,6 +47,10 @@ make_tests:
 
 clean_tests:
 		@$(foreach file, $(wildcard $(RES_EXE_DIR)/*.exe), rm $(file);)
+		@$(foreach file, $(wildcard $(RES_OBJ_DIR)/*.o),   rm $(file);)
+		@$(foreach file, $(wildcard $(SRC_DIR)/*.s),       rm $(file);)
+
+.PRECIOUS: results/asm/%.s results/obj/%.o
 
 $(RES_EXE_DIR)/%.exe: $(RES_OBJ_DIR)/%.o
 					  @echo
