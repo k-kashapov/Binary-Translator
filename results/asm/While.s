@@ -6,8 +6,8 @@ inputbuf: resq 8
 
 section .data
 
-in_str:  db "%d"                         ; format string for scanf
-out_str: db ">> %d + %d / 512", 0xA ; format string for printf
+in_str:  db "%d"             ; format string for scanf
+out_str: db ">> %d.%d", 0xA ; format string for printf
 
 section .text
 

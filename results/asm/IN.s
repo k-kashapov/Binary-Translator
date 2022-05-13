@@ -6,8 +6,8 @@ inputbuf: resq 8
 
 section .data
 
-in_str:  db "%d"                         ; format string for scanf
-out_str: db ">> %d + %d / 512", 0xA ; format string for printf
+in_str:  db "%d"             ; format string for scanf
+out_str: db ">> %d.%d", 0xA ; format string for printf
 
 section .text
 
@@ -42,7 +42,33 @@ f1058: ; def main
 	sub rsp, 8 ; declared ЛошедьБ; [8; 16]
 	mov [rbp - 8], rax ; ЛошедьБ = rax
 	
+	push rbp
+	mov rbp, rsp
+	mov rdi, in_str   ; format string for float value
+	mov rsi, inputbuf ; buffer for inputted value
+	mov rax, 0
+	call scanf
+	mov rax, [inputbuf]
+	shl rax, 9 ; pseudo-float emul
+	mov rsp, rbp
+	pop rbp
 	mov [rbp - 8], rax ; ЛошедьБ = rax
+	
+	mov rax, [rbp - 8] ; ЛошедьБ
+	lea rdi, [out_str]
+
+	mov rsi, rax
+	shr rsi, 9 ; pseudo-float emul
+	and rax, 511 ; mask for last 9 bits
+	mov rcx, 3E8h ; rcx = 1000d for translation to base 10
+	mul rcx
+	shr rax, 9
+	mov rdx, rax
+
+	xor rax, rax
+	call printf
+	mov rdi, [stdout]
+	call fflush
 	
 	mov rax, [rbp - 8] ; ЛошедьБ
 	mov rsp, rbp

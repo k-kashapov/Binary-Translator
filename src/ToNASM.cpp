@@ -149,15 +149,20 @@ static int PrintIN (TNode *node)
 {
     $ if (!node) return 1;
 
-    // MOV_SS ("rdi", "format_str ; format string for float value");
-    // MOV_SS ("rsi", "inputbuf   ; buffer for inputted value");
-    //
-    // PrintA ("call scanf");
+    PUSH ("rbp");
+    MOV_SS ("rbp", "rsp");
 
-    // MOV_SD ("rax", 0);
-    // MOV_SD ("rdi", 1);
+    MOV_SS ("rdi", "in_str   ; format string for float value");
+    MOV_SS ("rsi", "inputbuf ; buffer for inputted value");
 
-    // FLOAT_L ("rax");
+    MOV_SD ("rax", 0);
+    PrintA ("call scanf");
+
+    MOV_SS ("rax", "[inputbuf]");
+    FLOAT_L ("rax");
+
+    MOV_SS ("rsp", "rbp");
+    POP ("rbp");
 
     return 0;
 }
@@ -167,13 +172,16 @@ static int PrintOUT (TNode *node)
     $ if (!node) return 1;
     NodeToAsm (RIGHT);
 
-    PrintA ("lea rdi, [out_str]");
+    PrintA ("lea rdi, [out_str]\n");
 
     MOV_SS  ("rsi", "rax");
     FLOAT_R ("rsi");
 
-    MOV_SS ("rdx", "rax");
-    PrintA ("and rdx, %d ; mask for last 9 bits", (1 << NUMS_AFTER_POINT) - 1);
+    PrintA ("and rax, %d ; mask for last 9 bits", (1 << NUMS_AFTER_POINT) - 1);
+    MOV_SS ("rcx", "3E8h ; rcx = 1000d for translation to base 10");
+    PrintA ("mul rcx");
+    PrintA ("shr rax, %d", NUMS_AFTER_POINT);
+    MOV_SS ("rdx", "rax\n");
 
     PrintA ("xor rax, rax");
     PrintA ("call printf");
@@ -564,8 +572,8 @@ int ToNASM (TNode *root, const char *name)
 
             "section .data\n\n"
 
-            "in_str:  db \"%%d\"                         ; format string for scanf\n"
-            "out_str: db \">> %%d + %%d / %d\", 0xA ; format string for printf\n\n"
+            "in_str:  db \"%%d\"             ; format string for scanf\n"
+            "out_str: db \">> %%d.%%d\", 0xA ; format string for printf\n\n"
 
             "section .text\n\n"
 
@@ -588,7 +596,7 @@ int ToNASM (TNode *root, const char *name)
 
             "\tmov rax, 0x3C\n"
             "\txor rdi, rdi\n"
-            "\tsyscall\n", 1 << NUMS_AFTER_POINT);
+            "\tsyscall\n");
 
     int err = NodeToAsm (root);
     if (err) printf ("Node to asm: errors occured: %d", err);
