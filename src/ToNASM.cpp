@@ -1,5 +1,8 @@
 #include "ToNASM.h"
 
+static int IN_USED  = 0;
+static int OUT_USED = 0;
+
 static void PrintA (const char *msg, ...)
 {
     for (int tab = 0; tab < Tabs; tab++)
@@ -34,22 +37,6 @@ static int AddVar (char isConst, int len, TNode *var)
     return id;
 }
 
-static int PopVar (int len)
-{
-    int id = RmId (ASM_IDS, 1);
-
-    ADD_SD ("rsp", INT_LEN * len);
-
-    Curr_rsp -= len;
-
-    LOG_MSG ("Popped variable of len %d; new memOfs = %d",
-             len, IDS[id].memOfs + 1);
-
-    PrintA ("add rsp, %d; removed variable of len %d", len * INT_LEN, len);
-
-    return 0;
-}
-
 // ================ <Service Nodes> ===========
 
 static int PrintCallArgs (TNode *node)
@@ -75,7 +62,7 @@ static int PrintCallArgs (TNode *node)
 
 static int PrintCALL (TNode *node)
 {
-    $ int pushed = PrintCallArgs (RIGHT);
+    $ PrintCallArgs (RIGHT);
 
     PrintA ("call f%ld ; call %.*s",
             abs (LEFT->data), LEFT->len, LEFT->declared);
@@ -154,6 +141,8 @@ static int PrintIN (TNode *node)
 {
     $ if (!node) return 1;
 
+    IN_USED = 1;
+
     PrintA ("xor rdi, rdi");
     MOV_SS ("rsi", "inputbuf ; buffer for inputted value\n");
     MOV_SD ("rdx", 15);
@@ -171,6 +160,9 @@ static int PrintIN (TNode *node)
 static int PrintOUT (TNode *node)
 {
     $ if (!node) return 1;
+
+    OUT_USED = 1;
+
     NodeToAsm (RIGHT);
 
     PrintA ("call out");
@@ -264,11 +256,15 @@ static int PrintSERV (TNode *node)
 #define OP_CASE(op, act)                                                        \
     case op:                                                                    \
         Tabs++;                                                                 \
-        NodeToAsm (RIGHT);                                                      \
+\
+        res = NodeToAsm (RIGHT);                                                \
         PUSH ("rax\n");                                                         \
-        NodeToAsm (LEFT);                                                       \
+\
+        res += NodeToAsm (LEFT);                                                \
         POP ("rbx\n");                                                          \
+\
         PrintA (act " rax, rbx\n");                                             \
+\
         Tabs--;                                                                 \
         break;
 
@@ -276,13 +272,14 @@ static int PrintSERV (TNode *node)
 
 static int PrintOP (TNode *node)
 {
+    int res = 0;
     switch (node->data)
     {
         case '=':
-            return PrintAssn (CURR);
+            res = PrintAssn (CURR);
             break;
         case '!':
-            return PrintNeg (CURR);
+            res = PrintNeg();
             break;
         COMP_CASE (EE, "je");
         COMP_CASE (AE, "jge");
@@ -295,95 +292,19 @@ static int PrintOP (TNode *node)
 
         case '*':
         {
-            Tabs++;
-
-            NodeToAsm (RIGHT);
-            PUSH ("rax\n");
-
-            NodeToAsm (LEFT);
-            POP ("rbx\n");
-
-            PrintA ("imul rbx\n");
-
-            FLOAT_R ("rax");
-
-            Tabs--;
+            res = PrintMul (CURR);
             break;
         }
 
         case '/':
         {
-            Tabs++;
-
-            NodeToAsm (RIGHT);
-            PUSH ("rax\n");
-
-            NodeToAsm (LEFT);
-            POP ("rbx\n");
-            FLOAT_R ("rbx");
-
-            PrintA ("cqo\n");
-
-            PrintA ("idiv rbx\n");
-
-            Tabs--;
+            res = PrintDiv (CURR);
             break;
         }
 
         case '^':
         {
-            Tabs++;
-
-            NodeToAsm (LEFT);
-            PrintA ("test rax, rax");
-            PrintA ("jz .DontPow");
-
-            PrintA ("cmp rax, 1");
-            PrintA ("je .DontPow");
-
-            PUSH ("rax\n");
-            NodeToAsm (RIGHT);
-
-            PrintA ("cmp rax, 1");
-            PrintA ("je .DontPowButPop");
-
-            PUSH ("rax\n");
-
-            // Load args into FPU stack
-            PrintA ("fild  WORD [rsp]            ; load base onto FPU stack");
-            PrintA ("fidiv DWORD [const_for_pow] ; convert from pseudo-float\n");
-
-            PrintA ("fild  WORD [rsp + %d]      ; load power onto FPU stack", INT_LEN);
-            PrintA ("fidiv DWORD [const_for_pow] ; convert from pseudo-float\n");
-
-            PrintA ("fyl2x ; power * log_2_(base)\n");
-
-            PrintA ("; value between -1 and 1 is required by pow of 2 command");
-            PrintA ("fist DWORD [rsp - 8] ; cast to int");
-            PrintA ("fild DWORD [rsp - 8] ;");
-            PrintA ("fsub      ; fit into [-1; 1]\n");
-
-            PrintA ("f2xm1 ; 2^(power * log_2_(base)) - 1 = base^power\n");
-
-            PrintA ("fld1   ; push 1");
-            PrintA ("fadd   ; add 1 to the result\n");
-
-            PrintA ("fild DWORD [rsp - 8] ; load casted value");
-            PrintA ("fxch   ; exchange st(0) <-> st(1)");
-            PrintA ("fscale ; multiply by remaining power of 2");
-
-            PrintA ("fimul DWORD [const_for_pow] ; to pseudo-float");
-            PrintA ("fistp DWORD [rsp + %d]      ; save pow value to stack\n", INT_LEN);
-
-            ADD_SD ("rsp", INT_LEN);
-
-            PrintA (".DontPowButPop:");
-
-            POP ("rax");
-
-            PrintA (".DontPow:");
-
-            Tabs--;
+            PrintPow (CURR);
             break;
         }
 
@@ -392,7 +313,7 @@ static int PrintOP (TNode *node)
             break;
     }
 
-    return 0;
+    return res;
 }
 #undef OP_CASE
 #undef COMP_CASE
@@ -428,9 +349,117 @@ static int Comp (const char *action, TNode *node)
     return 0;
 }
 
-static int PrintNeg (TNode *node)
+static int PrintNeg (void)
 {
     PrintA ("not rax");
+
+    return 0;
+}
+
+static int PrintPow (TNode *node)
+{
+    Tabs++;
+
+    int err = NodeToAsm (LEFT);
+    if (err) return err;
+
+    PrintA ("test rax, rax");
+    PrintA ("jz .DontPow");
+
+    PrintA ("cmp rax, 1");
+    PrintA ("je .DontPow");
+
+    PUSH ("rax\n");
+
+    err = NodeToAsm (RIGHT);
+    if (err) return err;
+
+    PrintA ("cmp rax, 1");
+    PrintA ("je .DontPowButPop");
+
+    PUSH ("rax\n");
+
+    // Load args into FPU stack
+    PrintA ("fild  WORD [rsp]            ; load base onto FPU stack");
+    PrintA ("fidiv DWORD [const_for_pow] ; convert from pseudo-float\n");
+
+    PrintA ("fild  WORD [rsp + %d]      ; load power onto FPU stack", INT_LEN);
+    PrintA ("fidiv DWORD [const_for_pow] ; convert from pseudo-float\n");
+
+    PrintA ("fyl2x ; power * log_2_(base)\n");
+
+    PrintA ("; value between -1 and 1 is required by pow of 2 command");
+    PrintA ("fist DWORD [rsp - 8] ; cast to int");
+    PrintA ("fild DWORD [rsp - 8] ;");
+    PrintA ("fsub      ; fit into [-1; 1]\n");
+
+    PrintA ("f2xm1 ; 2^(power * log_2_(base)) - 1 = base^power\n");
+
+    PrintA ("fld1   ; push 1");
+    PrintA ("fadd   ; add 1 to the result\n");
+
+    PrintA ("fild DWORD [rsp - 8] ; load casted value");
+    PrintA ("fxch   ; exchange st(0) <-> st(1)");
+    PrintA ("fscale ; multiply by remaining power of 2");
+
+    PrintA ("fimul DWORD [const_for_pow] ; to pseudo-float");
+    PrintA ("fistp DWORD [rsp + %d]      ; save pow value to stack\n", INT_LEN);
+
+    ADD_SD ("rsp", INT_LEN);
+
+    PrintA (".DontPowButPop:");
+
+    POP ("rax");
+
+    PrintA (".DontPow:");
+
+    Tabs--;
+
+    return 0;
+}
+
+static int PrintDiv (TNode *node)
+{
+    Tabs++;
+
+    int err = NodeToAsm (RIGHT);
+    if (err) return err;
+
+    PUSH ("rax\n");
+
+    err = NodeToAsm (LEFT);
+    if (err) return err;
+
+    POP ("rbx\n");
+    FLOAT_R ("rbx");
+
+    PrintA ("cqo\n");
+
+    PrintA ("idiv rbx\n");
+
+    Tabs--;
+    return 0;
+}
+
+static int PrintMul (TNode *node)
+{
+    Tabs++;
+
+    int err = NodeToAsm (RIGHT);
+    if (err) return err;
+
+    PUSH ("rax\n");
+
+    err = NodeToAsm (LEFT);
+    if (err) return err;
+
+    POP ("rbx\n");
+
+    PrintA ("imul rbx\n");
+
+    FLOAT_R ("rax");
+
+    Tabs--;
 
     return 0;
 }
@@ -599,56 +628,19 @@ static int NodeToAsm (TNode *node)
     return OK;
 }
 
-int ToNASM (TNode *root, const char *name)
+// The following 2 functions are total cringe, however their implementation
+// is acceptable
+
+static void PrintSTD_OUT (void)
 {
-    AsmFile = fopen (name, "wt");
-    if (!AsmFile)
-    {
-        LOG_ERR ("Unable to open asm file; name = %s\n", name);
-        return OPEN_FILE_FAILED;
-    }
-
-    // main func hash = f1058
-
-    PrintA ("global _start\n"
-
-            "section .bss\n\n"
-
-            "inputbuf: resq 2\n\n"
-
-            "section .data\n\n"
-
-            "outArr: db 10, \">> \"\n"
-            "outBig: dq 0, 0\n"
-            "outDot: db \'.\'\n"
-            "outLow: dq 0, 0 \n\n"
-
-            "const_for_pow: dd 0x200        ; memory for float computations\n"
-
-            "section .text\n\n"
-
-            "_start:\n"
-            "\tpush rbx   ; push everything\n"
-            "\tpush rbp   ; push everything\n"
-            "\tpush r12   ; push everything\n"
-            "\tpush r13   ; push everything\n"
-            "\tpush r14   ; push everything\n"
-            "\tpush r15   ; push everything\n\n"
-
-            "\tcall f1058 ; call main\n\n"
-
-            "\tpop rbx   ; restore initial regs state\n"
-            "\tpop rbp   ; restore initial regs state\n"
-            "\tpop r12   ; restore initial regs state\n"
-            "\tpop r13   ; restore initial regs state\n"
-            "\tpop r14   ; restore initial regs state\n"
-            "\tpop r15   ; restore initial regs state\n\n"
-
-            "\tmov rdi, rax\n"
-            "\tmov rax, 0x3C\n"
-            "\tsyscall\n");
-
     PrintA (
+        "section .data\n\n"
+
+        "outArr: db 10, \">> \"\n"
+        "outBig: dq 0, 0\n"
+        "outDot: db \'.\'\n"
+        "outLow: dq 0, 0 \n\n"
+
         "section .text\n\n"
         ";==============================================\n"
         "; StdLib: out\n"
@@ -749,7 +741,20 @@ int ToNASM (TNode *root, const char *name)
                 "ja .Print\n"
                 "; rdi = &buffer - 1\n"
                 "inc rdi ; rdi = &buffer\n"
-                "ret\n\n"
+                "ret\n\n",
+        NUMS_AFTER_POINT, (1 << NUMS_AFTER_POINT) - 1, NUMS_AFTER_POINT);
+
+    return;
+}
+
+static void PrintSTD_IN (void)
+{
+    PrintA(
+        "section .bss\n\n"
+
+        "inputbuf: resq 2\n\n"
+
+        "section .text\n\n"
 
         ";==============================================\n"
         "; StdLib: atoi\n"
@@ -782,10 +787,66 @@ int ToNASM (TNode *root, const char *name)
         "    jne .Ret\n"
         "    neg rax\n"
         ".Ret:\n"
-        "    ret\n\n",
-        NUMS_AFTER_POINT, (1 << NUMS_AFTER_POINT) - 1, NUMS_AFTER_POINT);
+        "    ret\n\n");
+
+    return;
+}
+
+int ToNASM (TNode *root, const char *name)
+{
+    AsmFile = fopen (name, "wt");
+    if (!AsmFile)
+    {
+        LOG_ERR ("Unable to open asm file; name = %s\n", name);
+        return OPEN_FILE_FAILED;
+    }
+
+    // main func hash = f1058
+
+    PrintA ("global _start\n"
+
+            "section .data\n\n"
+
+            "const_for_pow: dd 0x200        ; memory for float computations\n"
+
+            "section .text\n\n"
+
+            "_start:\n"
+            "\tpush rbx   ; push everything\n"
+            "\tpush rbp   ; push everything\n"
+            "\tpush r12   ; push everything\n"
+            "\tpush r13   ; push everything\n"
+            "\tpush r14   ; push everything\n"
+            "\tpush r15   ; push everything\n\n"
+
+            "\tcall f1058 ; call main\n\n"
+
+            "\tpop rbx   ; restore initial regs state\n"
+            "\tpop rbp   ; restore initial regs state\n"
+            "\tpop r12   ; restore initial regs state\n"
+            "\tpop r13   ; restore initial regs state\n"
+            "\tpop r14   ; restore initial regs state\n"
+            "\tpop r15   ; restore initial regs state\n\n"
+
+            "\tmov rdi, rax\n"
+            "\tmov rax, 0x3C\n"
+            "\tsyscall\n");
+
+    IN_USED = 0;
+    OUT_USED = 0;
 
     int err = NodeToAsm (root);
+
+    if (OUT_USED)
+    {
+        PrintSTD_OUT();
+    }
+
+    if (IN_USED)
+    {
+        PrintSTD_IN();
+    }
+
     if (err) printf ("Node to asm: errors occured: %d", err);
 
     return err;

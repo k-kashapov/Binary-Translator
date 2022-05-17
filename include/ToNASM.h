@@ -15,7 +15,6 @@ const static int INT_LEN = 8;
 
 static void PrintA        (const char *msg, ...);
 static int  AddVar        (char isConst, int len, TNode *var);
-static int  PopVar        (int len);
 static int  Comp          (const char *action, TNode *node);
 static int  PrintCallArgs (TNode *node);
 static int  PrintCALL     (TNode *node);
@@ -23,7 +22,10 @@ static int  PrintRET      (TNode *node);
 static int  PrintDEF      (TNode *node);
 static int  PrintIN       (TNode *node);
 static int  PrintOUT      (TNode *node);
-static int  PrintNeg      (TNode *node);
+static int  PrintNeg      (void);
+static int  PrintPow      (TNode *node);
+static int  PrintDiv      (TNode *node);
+static int  PrintMul      (TNode *node);
 static int  PrintWHILE    (TNode *node);
 static int  PrintSERV     (TNode *node);
 static int  PrintOP       (TNode *node);
@@ -33,6 +35,8 @@ static int  PrintID       (TNode *node);
 static int  PrintVar      (TNode *node);
 static int  PrintSt       (TNode *node);
 static int  PrintUNARY    (TNode *node);
+static void PrintSTD_OUT  (void);
+static void PrintSTD_IN   (void);
 static int  NodeToAsm     (TNode *node);
 
 #define CURR    node
