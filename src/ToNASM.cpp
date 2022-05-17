@@ -300,11 +300,11 @@ static int PrintOP (TNode *node)
             return PrintNeg (CURR);
             break;
         COMP_CASE (EE, "je");
-        COMP_CASE (AE, "jae");
-        COMP_CASE (BE, "jbe");
+        COMP_CASE (AE, "jge");
+        COMP_CASE (BE, "jle");
         COMP_CASE (NE, "jn");
-        COMP_CASE ('>', "ja");
-        COMP_CASE ('<', "jb");
+        COMP_CASE ('>', "jg");
+        COMP_CASE ('<', "jl");
         OP_CASE   ('+', "add");
         OP_CASE   ('-', "sub");
 

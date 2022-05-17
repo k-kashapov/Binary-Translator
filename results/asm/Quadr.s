@@ -210,12 +210,12 @@ f7938: ; def Квадрат
 
 		
 		; if statement
-			; jae
+			; jge
 				mov rax, [rbp - 32] ; Дискриминант
 				mov rbx, rax ; save left to rbx
 				mov rax, 0 ; const value << 9
 				cmp rbx, rax
-				jae .1cmp
+				jge .1cmp
 
 				xor rax, rax ; false
 				jmp .1cmpEnd
