@@ -55,7 +55,7 @@ clean_tests:
 $(RES_EXE_DIR)/%.exe: $(RES_OBJ_DIR)/%.o
 					  @echo
 					  @echo Linking $@
-					  @ld $^ $(ldLibs) -o $@
+					  @ld $^ -o $@
 					  @echo
 
 $(RES_OBJ_DIR)/%.o: $(SRC_DIR)/%.s

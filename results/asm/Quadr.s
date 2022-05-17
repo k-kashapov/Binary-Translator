@@ -1,17 +1,82 @@
 global _start
-extern printf, scanf, pow, fflush, stdout
 section .bss
 
 inputbuf: resq 2
 
 section .data
 
+outArr: db 10, ">> "
+outBig: dq 0, 0
+outDot: db '.'
+outLow: dq 0, 0 
+
 const_for_pow: dd 0x200        ; memory for float computations
-in_str:  db "%d"             ; format string for scanf
-out_str: db ">> %d.%d", 0xA  ; format string for printf
+section .text
+
+_start:
+	push rbx   ; push everything
+	push rbp   ; push everything
+	push r12   ; push everything
+	push r13   ; push everything
+	push r14   ; push everything
+	push r15   ; push everything
+
+	call f1058 ; call main
+
+	pop rbx   ; restore initial regs state
+	pop rbp   ; restore initial regs state
+	pop r12   ; restore initial regs state
+	pop r13   ; restore initial regs state
+	pop r14   ; restore initial regs state
+	pop r15   ; restore initial regs state
+
+	mov rdi, rax
+	mov rax, 0x3C
+	syscall
 
 section .text
 
+;==============================================
+; StdLib: out
+; Expects:
+;   outbuffer
+;   rax - value
+; Returns: None
+;==============================================
+
+out:
+    mov rdi, outBig
+    cmp rax, 0
+    jge .NotNegative
+    mov BYTE [outBig], '-'
+    inc rdi
+    neg rax
+.NotNegative:
+    push rax
+    shr rax, 9
+    mov rdx, rax
+    call itoa10
+    mov rax, 0x01
+    mov rdi, 0x01
+    mov rsi, outArr
+    mov rdx, r8
+    add rdx, 5
+    syscall
+    pop rax
+    and rax, 511
+    mov rbx, 1000
+    mul rbx
+    shr rax, 9
+    mov rdx, rax
+    mov rdi, outLow
+    call itoa10
+    mov rax, 0x01
+    mov rdi, 0x01
+    mov rsi, outDot
+    mov rdx, r8
+    add rdx, 1
+    syscall
+    ret
 ;==============================================
 ; StdLib: itoa
 ;==============================================
@@ -95,26 +160,6 @@ atoi:
 .Ret:
     ret
 
-_start:
-	push rbx   ; push everything
-	push rbp   ; push everything
-	push r12   ; push everything
-	push r13   ; push everything
-	push r14   ; push everything
-	push r15   ; push everything
-
-	call f1058 ; call main
-
-	pop rbx   ; restore initial regs state
-	pop rbp   ; restore initial regs state
-	pop r12   ; restore initial regs state
-	pop r13   ; restore initial regs state
-	pop r14   ; restore initial regs state
-	pop r15   ; restore initial regs state
-
-	mov rdi, rax
-	mov rax, 0x3C
-	syscall
 
 f7938: ; def Квадрат
 	push rbp ; create stack frame
@@ -165,7 +210,7 @@ f7938: ; def Квадрат
 
 					imul rbx
 
-					shr rax, 9 ; pseudo-float emul
+					sar rax, 9 ; pseudo-float emul
 				push rax
 
 				mov rax, 2048 ; const value << 9
@@ -173,7 +218,7 @@ f7938: ; def Квадрат
 
 				imul rbx
 
-				shr rax, 9 ; pseudo-float emul
+				sar rax, 9 ; pseudo-float emul
 			push rax
 
 				mov rax, [rbp - 16] ; ЛошедьБ
@@ -184,7 +229,7 @@ f7938: ; def Квадрат
 
 				imul rbx
 
-				shr rax, 9 ; pseudo-float emul
+				sar rax, 9 ; pseudo-float emul
 			pop rbx
 
 			sub rax, rbx
@@ -192,22 +237,7 @@ f7938: ; def Квадрат
 		mov [rbp - 32], rax ; Дискриминант = rax
 		
 		mov rax, [rbp - 32] ; Дискриминант
-		lea rdi, [out_str]
-
-		mov rsi, rax
-		shr rsi, 9 ; pseudo-float emul
-		and rax, 511 ; mask for last 9 bits
-		mov rcx, 3E8h ; rcx = 1000d for translation to base 10
-		mul rcx
-		shr rax, 9
-		mov rdx, rax
-
-		xor rax, rax
-		call printf
-
-		mov rdi, [stdout]
-		call fflush
-
+		call out
 		
 		; if statement
 			; jge
@@ -236,22 +266,7 @@ f7938: ; def Квадрат
 			mov [rbp - 40], rax ; Количество = rax
 			
 			mov rax, [rbp - 40] ; Количество
-			lea rdi, [out_str]
-
-			mov rsi, rax
-			shr rsi, 9 ; pseudo-float emul
-			and rax, 511 ; mask for last 9 bits
-			mov rcx, 3E8h ; rcx = 1000d for translation to base 10
-			mul rcx
-			shr rax, 9
-			mov rdx, rax
-
-			xor rax, rax
-			call printf
-
-			mov rdi, [stdout]
-			call fflush
-
+			call out
 			
 			mov rax, 0 ; const value << 9
 			sub rsp, 8 ; declared Корень; [48; 56]
@@ -270,18 +285,19 @@ f7938: ; def Квадрат
 					mov rax, 512 ; const value << 9
 					pop rbx
 
-					shr rbx, 9 ; pseudo-float emul
-					mov rdx, 0
-					div rbx
+					sar rbx, 9 ; pseudo-float emul
+					cqo
+
+					idiv rbx
 
 				cmp rax, 1
 				je .DontPowButPop
 				push rax
 
-				fild  WORD [rsp + 8]      ; load power onto FPU stack
+				fild  WORD [rsp]            ; load base onto FPU stack
 				fidiv DWORD [const_for_pow] ; convert from pseudo-float
 
-				fild  WORD [rsp]           ; load base onto FPU stack
+				fild  WORD [rsp + 8]      ; load power onto FPU stack
 				fidiv DWORD [const_for_pow] ; convert from pseudo-float
 
 				fyl2x ; power * log_2_(base)
@@ -320,7 +336,7 @@ f7938: ; def Квадрат
 
 					imul rbx
 
-					shr rax, 9 ; pseudo-float emul
+					sar rax, 9 ; pseudo-float emul
 				push rax
 
 					mov rax, [rbp - 16] ; ЛошедьБ
@@ -333,9 +349,10 @@ f7938: ; def Квадрат
 
 				pop rbx
 
-				shr rbx, 9 ; pseudo-float emul
-				mov rdx, 0
-				div rbx
+				sar rbx, 9 ; pseudo-float emul
+				cqo
+
+				idiv rbx
 
 			mov [rbp - 56], rax ; Корни = rax
 			
@@ -347,7 +364,7 @@ f7938: ; def Квадрат
 
 					imul rbx
 
-					shr rax, 9 ; pseudo-float emul
+					sar rax, 9 ; pseudo-float emul
 				push rax
 
 						mov rax, [rbp - 16] ; ЛошедьБ
@@ -367,47 +384,18 @@ f7938: ; def Квадрат
 
 				pop rbx
 
-				shr rbx, 9 ; pseudo-float emul
-				mov rdx, 0
-				div rbx
+				sar rbx, 9 ; pseudo-float emul
+				cqo
+
+				idiv rbx
 
 			mov [rbp - 64], rax ; Корни = rax
 			
 			mov rax, [rbp - 56] ; Корни
-			lea rdi, [out_str]
-
-			mov rsi, rax
-			shr rsi, 9 ; pseudo-float emul
-			and rax, 511 ; mask for last 9 bits
-			mov rcx, 3E8h ; rcx = 1000d for translation to base 10
-			mul rcx
-			shr rax, 9
-			mov rdx, rax
-
-			xor rax, rax
-			call printf
-
-			mov rdi, [stdout]
-			call fflush
-
+			call out
 			
 			mov rax, [rbp - 64] ; Корни
-			lea rdi, [out_str]
-
-			mov rsi, rax
-			shr rsi, 9 ; pseudo-float emul
-			and rax, 511 ; mask for last 9 bits
-			mov rcx, 3E8h ; rcx = 1000d for translation to base 10
-			mul rcx
-			shr rax, 9
-			mov rdx, rax
-
-			xor rax, rax
-			call printf
-
-			mov rdi, [stdout]
-			call fflush
-
+			call out
 			
 			jmp .1enif
 
@@ -428,22 +416,7 @@ f7938: ; def Квадрат
 			mov [rbp - 72], rax ; Жопа = rax
 			
 			mov rax, [rbp - 72] ; Жопа
-			lea rdi, [out_str]
-
-			mov rsi, rax
-			shr rsi, 9 ; pseudo-float emul
-			and rax, 511 ; mask for last 9 bits
-			mov rcx, 3E8h ; rcx = 1000d for translation to base 10
-			mul rcx
-			shr rax, 9
-			mov rdx, rax
-
-			xor rax, rax
-			call printf
-
-			mov rdi, [stdout]
-			call fflush
-
+			call out
 			
 			.1enif:
 
@@ -510,22 +483,7 @@ f8991: ; def Линейная
 			mov [rbp - 24], rax ; Количество = rax
 			
 			mov rax, [rbp - 24] ; Количество
-			lea rdi, [out_str]
-
-			mov rsi, rax
-			shr rsi, 9 ; pseudo-float emul
-			and rax, 511 ; mask for last 9 bits
-			mov rcx, 3E8h ; rcx = 1000d for translation to base 10
-			mul rcx
-			shr rax, 9
-			mov rdx, rax
-
-			xor rax, rax
-			call printf
-
-			mov rdi, [stdout]
-			call fflush
-
+			call out
 			
 			jmp .3enif
 
@@ -538,22 +496,7 @@ f8991: ; def Линейная
 			mov [rbp - 24], rax ; Количество = rax
 			
 			mov rax, [rbp - 24] ; Количество
-			lea rdi, [out_str]
-
-			mov rsi, rax
-			shr rsi, 9 ; pseudo-float emul
-			and rax, 511 ; mask for last 9 bits
-			mov rcx, 3E8h ; rcx = 1000d for translation to base 10
-			mul rcx
-			shr rax, 9
-			mov rdx, rax
-
-			xor rax, rax
-			call printf
-
-			mov rdi, [stdout]
-			call fflush
-
+			call out
 			
 			mov rax, 0 ; const value << 9
 			sub rsp, 8 ; declared Нулёвочка; [32; 40]
@@ -563,22 +506,7 @@ f8991: ; def Линейная
 			mov [rbp - 32], rax ; Нулёвочка = rax
 			
 			mov rax, [rbp - 32] ; Нулёвочка
-			lea rdi, [out_str]
-
-			mov rsi, rax
-			shr rsi, 9 ; pseudo-float emul
-			and rax, 511 ; mask for last 9 bits
-			mov rcx, 3E8h ; rcx = 1000d for translation to base 10
-			mul rcx
-			shr rax, 9
-			mov rdx, rax
-
-			xor rax, rax
-			call printf
-
-			mov rdi, [stdout]
-			call fflush
-
+			call out
 			
 			.3enif:
 
@@ -621,22 +549,7 @@ f8991: ; def Линейная
 			mov [rbp - 40], rax ; Жопа = rax
 			
 			mov rax, [rbp - 40] ; Жопа
-			lea rdi, [out_str]
-
-			mov rsi, rax
-			shr rsi, 9 ; pseudo-float emul
-			and rax, 511 ; mask for last 9 bits
-			mov rcx, 3E8h ; rcx = 1000d for translation to base 10
-			mul rcx
-			shr rax, 9
-			mov rdx, rax
-
-			xor rax, rax
-			call printf
-
-			mov rdi, [stdout]
-			call fflush
-
+			call out
 			
 			jmp .4enif
 
@@ -649,22 +562,7 @@ f8991: ; def Линейная
 			mov [rbp - 24], rax ; Количество = rax
 			
 			mov rax, [rbp - 24] ; Количество
-			lea rdi, [out_str]
-
-			mov rsi, rax
-			shr rsi, 9 ; pseudo-float emul
-			and rax, 511 ; mask for last 9 bits
-			mov rcx, 3E8h ; rcx = 1000d for translation to base 10
-			mul rcx
-			shr rax, 9
-			mov rdx, rax
-
-			xor rax, rax
-			call printf
-
-			mov rdi, [stdout]
-			call fflush
-
+			call out
 			
 			mov rax, 0 ; const value << 9
 			sub rsp, 8 ; declared Результат; [48; 56]
@@ -676,9 +574,10 @@ f8991: ; def Линейная
 					mov rax, [rbp - 16] ; ЛошедьБ
 					pop rbx
 
-					shr rbx, 9 ; pseudo-float emul
-					mov rdx, 0
-					div rbx
+					sar rbx, 9 ; pseudo-float emul
+					cqo
+
+					idiv rbx
 
 				push rax
 
@@ -690,22 +589,7 @@ f8991: ; def Линейная
 			mov [rbp - 48], rax ; Результат = rax
 			
 			mov rax, [rbp - 48] ; Результат
-			lea rdi, [out_str]
-
-			mov rsi, rax
-			shr rsi, 9 ; pseudo-float emul
-			and rax, 511 ; mask for last 9 bits
-			mov rcx, 3E8h ; rcx = 1000d for translation to base 10
-			mul rcx
-			shr rax, 9
-			mov rdx, rax
-
-			xor rax, rax
-			call printf
-
-			mov rdi, [stdout]
-			call fflush
-
+			call out
 			
 			.4enif:
 
@@ -750,7 +634,7 @@ f1058: ; def main
 	syscall
 	mov rcx, rax
 	call atoi
-	shl rax, 9 ; pseudo-float emul
+	sal rax, 9 ; pseudo-float emul
 	mov [rbp - 16], rax ; ЛошедьА = rax
 	
 	xor rdi, rdi
@@ -761,7 +645,7 @@ f1058: ; def main
 	syscall
 	mov rcx, rax
 	call atoi
-	shl rax, 9 ; pseudo-float emul
+	sal rax, 9 ; pseudo-float emul
 	mov [rbp - 24], rax ; ЛошедьБ = rax
 	
 	xor rdi, rdi
@@ -772,7 +656,7 @@ f1058: ; def main
 	syscall
 	mov rcx, rax
 	call atoi
-	shl rax, 9 ; pseudo-float emul
+	sal rax, 9 ; pseudo-float emul
 	mov [rbp - 32], rax ; ЛошедьВ = rax
 	
 	; call args

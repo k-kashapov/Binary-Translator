@@ -60,8 +60,8 @@ static int  NodeToAsm     (TNode *node);
 #define MOV_SS(dst, src) PrintA ("mov %s, %s", dst, src);
 #define MOV_SD(dst, src) PrintA ("mov %s, %d", dst, src);
 
-#define SHR(tgt, num) PrintA ("shr %s, %d ; pseudo-float emul", tgt, num);
-#define SHL(tgt, num) PrintA ("shl %s, %d ; pseudo-float emul", tgt, num);
+#define SHR(tgt, num) PrintA ("sar %s, %d ; pseudo-float emul", tgt, num);
+#define SHL(tgt, num) PrintA ("sal %s, %d ; pseudo-float emul", tgt, num);
 
 #define NUMS_AFTER_POINT 9
 
