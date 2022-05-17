@@ -26,8 +26,10 @@ static int AddVar (char isConst, int len, TNode *var)
 
     Curr_rsp += len;
 
-    LOG_MSG ("var declared = %.*s; len = %d; id = %d; memOfs = %d; Frame = %d; offs = [%d; %d]",
-             var->len, var->declared, len, id, IDS[id].memOfs + 1, Frame, OFFS (id, 0), OFFS (id, len));
+    LOG_MSG ("var declared = %.*s; len = %d; id = %d; "
+             "memOfs = %d; Frame = %d; offs = [%d; %d]",
+             var->len, var->declared, len, id, IDS[id].memOfs + 1,
+             Frame, OFFS (id, 0), OFFS (id, len));
 
     return id;
 }
@@ -40,7 +42,8 @@ static int PopVar (int len)
 
     Curr_rsp -= len;
 
-    LOG_MSG ("Popped variable of len %d; new memOfs = %d", len, IDS[id].memOfs + 1);
+    LOG_MSG ("Popped variable of len %d; new memOfs = %d",
+             len, IDS[id].memOfs + 1);
 
     PrintA ("add rsp, %d; removed variable of len %d", len * INT_LEN, len);
 
@@ -106,9 +109,11 @@ static int PrintDEF (TNode *node)
     Frame = 0;
 
     long hash = abs(params->left->data);
-    LOG_MSG ("functon declared: %.*s\n", params->left->len, params->left->declared);
+    LOG_MSG ("functon declared: %.*s\n",
+             params->left->len, params->left->declared);
 
-    $ PrintA ("f%ld: ; def %.*s", hash, params->left->len, params->left->declared);
+    $ PrintA ("f%ld: ; def %.*s", hash,
+              params->left->len, params->left->declared);
 
     Tabs++;
 
@@ -149,20 +154,25 @@ static int PrintIN (TNode *node)
 {
     $ if (!node) return 1;
 
-    PUSH ("rbp");
-    MOV_SS ("rbp", "rsp");
-
     MOV_SS ("rdi", "in_str   ; format string for float value");
-    MOV_SS ("rsi", "inputbuf ; buffer for inputted value");
+    MOV_SS ("rsi", "inputbuf ; buffer for inputted value\n");
 
     MOV_SD ("rax", 0);
-    PrintA ("call scanf");
+
+    PUSH ("rbp");
+    MOV_SS ("rbp", "rsp\n");
+
+    // align stack pointer to be 8 + 16 * n
+
+    if (Curr_rsp % 16 != 8) SUB_SD ("rsp", 8);
+
+    PrintA ("call scanf\n");
 
     MOV_SS ("rax", "[inputbuf]");
     FLOAT_L ("rax");
 
     MOV_SS ("rsp", "rbp");
-    POP ("rbp");
+    POP ("rbp\n");
 
     return 0;
 }
@@ -184,10 +194,10 @@ static int PrintOUT (TNode *node)
     MOV_SS ("rdx", "rax\n");
 
     PrintA ("xor rax, rax");
-    PrintA ("call printf");
+    PrintA ("call printf\n");
 
     MOV_SS ("rdi", "[stdout]");
-    PrintA ("call fflush");
+    PrintA ("call fflush\n");
 
     return 0;
 }
@@ -257,7 +267,8 @@ static int PrintIF (TNode *node)
     return 0;
 }
 
-#define IF_SERVICE(serv) if (DATA == ServiceNodes[serv]) return Print##serv (CURR);
+#define IF_SERVICE(serv)                                                        \
+    if (DATA == ServiceNodes[serv]) return Print##serv (CURR);
 static int PrintSERV (TNode *node)
 {
     $ IF_SERVICE (IF);
@@ -316,7 +327,7 @@ static int PrintOP (TNode *node)
             NodeToAsm (LEFT);
             POP ("rbx\n");
 
-            PrintA ("mul rbx\n");
+            PrintA ("imul rbx\n");
 
             FLOAT_R ("rax");
 
@@ -343,7 +354,49 @@ static int PrintOP (TNode *node)
             break;
         }
 
-        OP_CASE   ('^', "; pow");
+        case '^':
+        {
+            Tabs++;
+
+            NodeToAsm (RIGHT);
+            PUSH ("rax\n");
+
+            NodeToAsm (LEFT);
+            PUSH ("rax\n");
+
+            // Load args into FPU stack
+            PrintA ("fild  WORD [rsp + %d]      ; load power onto FPU stack", INT_LEN);
+            PrintA ("fidiv DWORD [const_for_pow] ; convert from pseudo-float\n");
+
+            PrintA ("fild  WORD [rsp]           ; load base onto FPU stack");
+            PrintA ("fidiv DWORD [const_for_pow] ; convert from pseudo-float\n");
+
+            PrintA ("fyl2x ; power * log_2_(base)\n");
+
+            PrintA ("; value between -1 and 1 is required by pow of 2 command");
+            PrintA ("fist DWORD [rsp - 8] ; cast to int");
+            PrintA ("fild DWORD [rsp - 8] ;");
+            PrintA ("fsub      ; fit into [-1; 1]\n");
+
+            PrintA ("f2xm1 ; 2^(power * log_2_(base)) - 1 = base^power\n");
+
+            PrintA ("fld1   ; push 1");
+            PrintA ("fadd   ; add 1 to the result\n");
+
+            PrintA ("fild DWORD [rsp - 8] ; load casted value");
+            PrintA ("fxch   ; exchange st(0) <-> st(1)");
+            PrintA ("fscale ; multiply by remaining power of 2");
+
+            PrintA ("fimul DWORD [const_for_pow] ; to pseudo-float");
+            PrintA ("fistp DWORD [rsp + %d]      ; save pow value to stack\n", INT_LEN);
+
+            ADD_SD ("rsp", INT_LEN);
+
+            POP ("rax");
+
+            Tabs--;
+            break;
+        }
 
         default:
             LOG_ERR ("Unknown operand: %c\n", (char) node->data);
@@ -395,7 +448,8 @@ static int PrintNeg (TNode *node)
 
 static int PrintAssn (TNode *node)
 {
-    LOG_MSG ("%.*s = %.*s", LEFT->len, LEFT->declared, RIGHT->len, RIGHT->declared);
+    LOG_MSG ("%.*s = %.*s", LEFT->len, LEFT->declared,
+                            RIGHT->len, RIGHT->declared);
 
     int id_pos = FindId (ASM_IDS, LEFT->data);
 
@@ -470,7 +524,8 @@ static int PrintVar (TNode *node)
             len = (int) RIGHT->data;
         }
 
-        PrintA ("mov rax, [%s - %d] ; %.*s", RBP, OFFS (id_pos, len), LEN, DECL);
+        PrintA ("mov rax, [%s - %d] ; %.*s",
+                RBP, OFFS (id_pos, len), LEN, DECL);
     }
     else
     {
@@ -511,7 +566,10 @@ static int PrintUNARY (TNode *node)
 {
     if (!RIGHT) return 1;
     NodeToAsm (RIGHT);
-    for (size_t func = 0; func < sizeof (UnaryFuncs) / sizeof (*UnaryFuncs); func++)
+
+    size_t func_num = sizeof (UnaryFuncs) / sizeof (*UnaryFuncs);
+
+    for (size_t func = 0; func < func_num; func++)
     {
         if (DATA == UnaryFuncs[func])
         {
@@ -568,12 +626,13 @@ int ToNASM (TNode *root, const char *name)
 
             "section .bss\n\n"
 
-            "inputbuf: resq 8\n\n"
+            "inputbuf: resq 2\n\n"
 
             "section .data\n\n"
 
+            "const_for_pow: dd 0x200        ; memory for float computations\n"
             "in_str:  db \"%%d\"             ; format string for scanf\n"
-            "out_str: db \">> %%d.%%d\", 0xA ; format string for printf\n\n"
+            "out_str: db \">> %%d.%%d\", 0xA  ; format string for printf\n\n"
 
             "section .text\n\n"
 
@@ -594,8 +653,8 @@ int ToNASM (TNode *root, const char *name)
             "\tpop r14   ; restore initial regs state\n"
             "\tpop r15   ; restore initial regs state\n\n"
 
+            "\tmov rdi, rax\n"
             "\tmov rax, 0x3C\n"
-            "\txor rdi, rdi\n"
             "\tsyscall\n");
 
     int err = NodeToAsm (root);

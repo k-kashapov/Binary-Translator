@@ -5,7 +5,7 @@ bin/all: k++
 
 basicFlags = -I include -Wall -Wextra -O2 -g -D LOGGING -no-pie
 
-ldLibs = /lib/x86_64-linux-gnu/libc-2.31.so --dynamic-linker /lib64/ld-linux-x86-64.so.2
+ldLibs = /lib/x86_64-linux-gnu/libc-2.31.so -lm --dynamic-linker /lib64/ld-linux-x86-64.so.2
 
 langDepends = main.cpp src/DiffGraph.cpp src/files.cpp src/Ids.cpp src/Lang.cpp           \
 			  src/Lexic.cpp src/Logs.cpp src/SimpleHash.cpp src/Tree.cpp src/ToNASM.cpp   \
@@ -20,8 +20,8 @@ langBackDepends = main.cpp src/ToNASM.cpp src/TreeToAsm.cpp
 OBJECTS = $(patsubst %.cpp, %.o, $(langFrontDepends))
 
 obj/*.o: $(langFrontDepends)
-	   		g++ $(basicFlags) $(langFrontDepends) -c
-	   		mv *.o obj/
+	     g++ $(basicFlags) $(langFrontDepends) -c
+	   	 mv *.o obj/
 	 
 lang: obj/*.o $(langBackDepends)
 	  g++ $(basicFlags) $(langBackDepends) obj/*.o -o lang.exe -D CREATE_IMG -D SAVE_TO_BASE
