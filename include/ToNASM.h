@@ -11,7 +11,7 @@ static int  Tabs       = 0;
 static int  Curr_rsp   = 0;
 static int  Frame      = 0;
 
-const static int INT_LEN = 16;
+const static int INT_LEN = 8;
 
 static void PrintA        (const char *msg, ...);
 static int  AddVar        (char isConst, int len, TNode *var);

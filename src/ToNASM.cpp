@@ -154,25 +154,16 @@ static int PrintIN (TNode *node)
 {
     $ if (!node) return 1;
 
-    MOV_SS ("rdi", "in_str   ; format string for float value");
+    PrintA ("xor rdi, rdi");
     MOV_SS ("rsi", "inputbuf ; buffer for inputted value\n");
+    MOV_SD ("rdx", 15);
 
-    MOV_SD ("rax", 0);
+    PrintA ("xor rax, rax");
+    PrintA ("syscall");
 
-    PUSH ("rbp");
-    MOV_SS ("rbp", "rsp\n");
-
-    // align stack pointer to be 8 + 16 * n
-
-    if (Curr_rsp % 16 != 8) SUB_SD ("rsp", 8);
-
-    PrintA ("call scanf\n");
-
-    MOV_SS ("rax", "[inputbuf]");
+    MOV_SS ("rcx", "rax");
+    PrintA ("call atoi");
     FLOAT_L ("rax");
-
-    MOV_SS ("rsp", "rbp");
-    POP ("rbp\n");
 
     return 0;
 }
@@ -358,10 +349,20 @@ static int PrintOP (TNode *node)
         {
             Tabs++;
 
-            NodeToAsm (RIGHT);
+            NodeToAsm (LEFT);
+            PrintA ("test rax, rax");
+            PrintA ("jz .DontPow");
+
+            PrintA ("cmp rax, 1");
+            PrintA ("je .DontPow");
+
             PUSH ("rax\n");
 
-            NodeToAsm (LEFT);
+            NodeToAsm (RIGHT);
+
+            PrintA ("cmp rax, 1");
+            PrintA ("je .DontPowButPop");
+
             PUSH ("rax\n");
 
             // Load args into FPU stack
@@ -392,7 +393,11 @@ static int PrintOP (TNode *node)
 
             ADD_SD ("rsp", INT_LEN);
 
+            PrintA (".DontPowButPop:");
+
             POP ("rax");
+
+            PrintA (".DontPow:");
 
             Tabs--;
             break;
@@ -635,6 +640,93 @@ int ToNASM (TNode *root, const char *name)
             "out_str: db \">> %%d.%%d\", 0xA  ; format string for printf\n\n"
 
             "section .text\n\n"
+
+            ";==============================================\n"
+            "; StdLib: itoa\n"
+            ";==============================================\n\n"
+
+            "CountBytes:\n"
+            "	xor rax, rax\n"
+            "        mov rax, rdx	; save value in r10 to count symbols in it\n"
+            "        xor ch, ch\n"
+            ".Loop:\n"
+            "        inc ch  	; bytes counter\n"
+            "        shr rax, cl     ; rax >> cl\n"
+            "        jnz .Loop\n"
+            "	xor rax, rax\n"
+            "        mov al, ch\n"
+            "ret\n"
+
+            ";==============================================\n"
+            "; Converts integer value into a string, base 10\n"
+            "; Expects:\n"
+            ";       rdx - Integer value\n"
+            ";       rdi - Buffer to write into\n"
+            "; Returns:\n"
+            ";       r8  - Printed bytes num\n"
+            "; Destr:\n"
+            ";       rdx, r10, r9\n"
+            ";==============================================\n"
+
+            "itoa10:\n"
+            	"xor r8, r8		; r8 = bytes counter\n"
+            	"mov r9, rdx 		; from now on, value is stored in r9\n"
+                    "mov rax, rdx		; save value to rax\n"
+                    "mov r10, 10\n"
+            ".CntBytes:              	; skips, bytes that are required to save the value\n"
+                    "xor rdx, rdx		; reset remaining\n"
+                    "div r10            ; rax = rax / 10; rdx = rax % 10\n"
+                    "inc rdi\n"
+                    "inc r8\n"
+                    "cmp rax, 0000h\n"
+                    "ja .CntBytes\n"
+                    "mov rax, r9           	; reset value\n"
+                    "mov byte [rdi], 00\n"
+                    "dec rdi\n"
+            ".Print:\n"
+                    "xor rdx, rdx\n"
+                    "div r10                ; rax = rax / 10; rdx = rax % 10\n"
+                    "add dl, '0'           	; to ASCII\n"
+                    "mov [rdi], dl\n"
+                    "dec rdi\n"
+                    "cmp rax, 00h\n"
+                    "ja .Print\n"
+            		"; rdi = &buffer - 1\n"
+            	    "inc rdi ; rdi = &buffer\n"
+                    "ret\n\n"
+
+            ";==============================================\n"
+            "; StdLib: atoi\n"
+            "; Expects:\n"
+            ";     rsi - inputbuf\n"
+            ";     rcx - len of input\n"
+            "; Returns:\n"
+            ";     rax - result int\n"
+            ";==============================================\n"
+
+            "atoi:\n"
+            "    xor rax, rax\n"
+            "    xor rbx, rbx\n"
+            "    dec rcx\n"
+            "    jz .End\n"
+            "    cmp BYTE [rsi], \'-\'\n"
+            "    jne .Loop\n"
+            "    inc rsi\n"
+            "    dec rcx\n"
+            ".Loop:\n"
+            "    mov bl, [rsi]\n"
+            "    sub rbx, \'0\'\n"
+            "    inc rsi\n"
+            "    mov rdx, 10\n"
+            "    mul rdx\n"
+            "    add rax, rbx\n"
+            "    loop .Loop\n"
+            ".End:"
+            "    cmp BYTE [inputbuf], \'-\'\n"
+            "    jne .Ret\n"
+            "    neg rax\n"
+            ".Ret:\n"
+            "    ret\n\n"
 
             "_start:\n"
             "\tpush rbx   ; push everything\n"
