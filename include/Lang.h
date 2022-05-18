@@ -43,6 +43,7 @@ enum LANG_EXIT_CODES
     REDECLARATION = 0x02,
     UNDECLARED    = 0x03,
     ZERO_CAP_DECL = 0x04,
+    MEM_ALLOC_ERR = 0x05,
 };
 
 int64_t SimpleHash (const void *data, int len);
@@ -172,6 +173,8 @@ void CloseBaseFile (void);
 int Translate (TNode *root, const char *name);
 
 int ToNASM (TNode *root, const char *name);
+
+int ToBIN (TNode *root, const char *name);
 
 void FreeTransTree (TNode *root, TNode **nodes, int nodesNum);
 

@@ -24,6 +24,7 @@ enum LANG_OPTNS
     READ_BASE = 0x01,
     REVERSE   = 0x02,
     NASM      = 0x04,
+    BIN_TRANS = 0x08,
 };
 
 /**

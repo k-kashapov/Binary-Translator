@@ -1,4 +1,4 @@
-#include "ToNASM.h"
+#include "ToBIN.h"
 
 static int IN_USED  = 0;
 static int OUT_USED = 0;
@@ -15,6 +15,37 @@ static void PrintA (const char *msg, ...)
     vfprintf (AsmFile, msg, arg);
     va_end (arg);
     fprintf (AsmFile, "\n");
+}
+
+static int PrintB (INSTRUCTION *ins)
+{
+    if (ArrCap < ArrLen + ins->len + 1)
+    {
+        void *tmp = realloc (BinArr, ArrCap * 2);
+        if (!tmp) return MEM_ALLOC_ERR;
+
+        BinArr = (char *) tmp;
+        ArrCap *= 2;
+    }
+
+    printf ("printing to bin\n");
+
+    sprintf (BinArr + ArrLen, "%.*s", ins->len, (const char *)(&ins->opcode));
+    ArrLen += ins->len;
+
+    if (ins->arg_len > 0)
+    {
+        printf ("arg to bin\n");
+        sprintf (BinArr + ArrLen, "%.*s", ins->arg_len, (const char *) &(ins->arg));
+        ArrLen += ins->arg_len;
+    }
+
+    return 0;
+}
+
+static int Bflush (FILE *flushTO)
+{
+    return fwrite (BinArr, 1, ArrLen, flushTO);
 }
 
 static int AddVar (char isConst, int len, TNode *var)
@@ -792,8 +823,65 @@ static void PrintSTD_IN (void)
     return;
 }
 
-int ToNASM (TNode *root, const char *name)
+int ToBIN (TNode *root, const char *name)
 {
+    // main func hash = f1058
+
+    BinArr = (char *) calloc (sizeof (char), INIT_CAP);
+    if (!BinArr)
+    {
+        LOG_ERR ("Unable to allocate memory of len = %d\n", INIT_CAP);
+        return MEM_ALLOC_ERR;
+    }
+
+    ArrCap = INIT_CAP;
+    ArrLen = 0;
+
+    //
+    // PrintA ("global _start\n"
+    //
+    //         "section .data\n\n"
+    //
+    //         "const_for_pow: dd 0x200        ; memory for float computations\n"
+    //
+    //         "section .text\n\n"
+    //
+    //         "_start:\n"
+    //         "\tpush rbx   ; push everything\n"
+    //         "\tpush rbp   ; push everything\n"
+    //         "\tpush r12   ; push everything\n"
+    //         "\tpush r13   ; push everything\n"
+    //         "\tpush r14   ; push everything\n"
+    //         "\tpush r15   ; push everything\n\n"
+    //
+    //         "\tcall f1058 ; call main\n\n"
+    //
+    //         "\tpop rbx   ; restore initial regs state\n"
+    //         "\tpop rbp   ; restore initial regs state\n"
+    //         "\tpop r12   ; restore initial regs state\n"
+    //         "\tpop r13   ; restore initial regs state\n"
+    //         "\tpop r14   ; restore initial regs state\n"
+    //         "\tpop r15   ; restore initial regs state\n\n"
+    //
+    //         "\tmov rdi, rax\n"
+    //         "\tmov rax, 0x3C\n"
+    //         "\tsyscall\n");
+    //
+    // IN_USED = 0;
+    // OUT_USED = 0;
+    //
+    // int err = NodeToAsm (root);
+    //
+    // if (OUT_USED)
+    // {
+    //     PrintSTD_OUT();
+    // }
+    //
+    // if (IN_USED)
+    // {
+    //     PrintSTD_IN();
+    // }
+
     AsmFile = fopen (name, "wt");
     if (!AsmFile)
     {
@@ -801,53 +889,12 @@ int ToNASM (TNode *root, const char *name)
         return OPEN_FILE_FAILED;
     }
 
-    // main func hash = f1058
+    INSTRUCTION ins = { 0xC3C3C3C3, 4, 0, 0 };
 
-    PrintA ("global _start\n"
+    int err = PrintB (&ins);
+    Bflush (AsmFile);
 
-            "section .data\n\n"
-
-            "const_for_pow: dd 0x200        ; memory for float computations\n"
-
-            "section .text\n\n"
-
-            "_start:\n"
-            "\tpush rbx   ; push everything\n"
-            "\tpush rbp   ; push everything\n"
-            "\tpush r12   ; push everything\n"
-            "\tpush r13   ; push everything\n"
-            "\tpush r14   ; push everything\n"
-            "\tpush r15   ; push everything\n\n"
-
-            "\tcall f1058 ; call main\n\n"
-
-            "\tpop rbx   ; restore initial regs state\n"
-            "\tpop rbp   ; restore initial regs state\n"
-            "\tpop r12   ; restore initial regs state\n"
-            "\tpop r13   ; restore initial regs state\n"
-            "\tpop r14   ; restore initial regs state\n"
-            "\tpop r15   ; restore initial regs state\n\n"
-
-            "\tmov rdi, rax\n"
-            "\tmov rax, 0x3C\n"
-            "\tsyscall\n");
-
-    IN_USED = 0;
-    OUT_USED = 0;
-
-    int err = NodeToAsm (root);
-
-    if (OUT_USED)
-    {
-        PrintSTD_OUT();
-    }
-
-    if (IN_USED)
-    {
-        PrintSTD_IN();
-    }
-
-    fclose  (AsmFile);
+    fclose (AsmFile);
 
     if (err) printf ("Node to asm: errors occured: %d", err);
 

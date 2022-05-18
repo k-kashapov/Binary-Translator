@@ -63,6 +63,10 @@ int main (int argc, const char **argv)
         {
             ToNASM (res, io_config.output_file);
         }
+        else if (io_config.settings & BIN_TRANS)
+        {
+            ToBIN (res, io_config.output_file);
+        }
         else
         {
             Translate (res, io_config.output_file);

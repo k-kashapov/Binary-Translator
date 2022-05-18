@@ -15,7 +15,7 @@ langFrontDepends =  src/DiffGraph.cpp src/files.cpp src/Ids.cpp src/Lang.cpp    
 			  		src/Lexic.cpp src/Logs.cpp src/SimpleHash.cpp src/Tree.cpp            \
               		src/TreeRead.cpp src/TreeSave.cpp src/Reverse.cpp
 
-langBackDepends = main.cpp src/ToNASM.cpp src/TreeToAsm.cpp
+langBackDepends = main.cpp src/ToNASM.cpp src/TreeToAsm.cpp src/ToBIN.cpp
 
 OBJECTS = $(patsubst %.cpp, %.o, $(langFrontDepends))
 

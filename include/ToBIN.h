@@ -1,8 +1,16 @@
-#ifndef TONASM_H
-#define TONASM_H
+#ifndef TOBIN_H
+#define TOBIN_H
 
-#define LOG_NAME "ToNASM"
+#define LOG_NAME "ToBIN"
 #include "Lang.h"
+
+struct INSTRUCTION
+{
+    int64_t opcode  = 0;
+    int     len     = 0;
+    int     arg_len = 0;
+    int64_t arg     = 0;
+};
 
 static FILE *AsmFile   = NULL;
 static int  IdsNum     = 0;
@@ -10,10 +18,15 @@ static Id   *IdsArr    = NULL;
 static int  Tabs       = 0;
 static int  Curr_rsp   = 0;
 static int  Frame      = 0;
+static char *BinArr    = NULL;
+static int  ArrLen     = 0;
+static int  ArrCap     = 0;
 
-const static int INT_LEN = 8;
+const static int INIT_CAP = 512; // initial binary array capacity
+const static int INT_LEN  = 8;   // length of single int
 
-static void PrintA        (const char *msg, ...);
+static int  PrintB        (INSTRUCTION *ins);
+static int  Bflush        (FILE *flushTO);
 static int  AddVar        (char isConst, int len, TNode *var);
 static int  Comp          (const char *action, TNode *node);
 static int  PrintCallArgs (TNode *node);

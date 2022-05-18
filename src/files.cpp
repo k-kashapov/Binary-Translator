@@ -32,6 +32,10 @@ int GetArgs (int argc, const char **argv, Config *curr_config)
         {
             curr_config->settings |= NASM;
         }
+        else if (!strncmp (*argv, "-B", 3))
+        {
+            curr_config->settings |= BIN_TRANS;
+        }
     }
     return 0;
 }
