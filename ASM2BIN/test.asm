@@ -8,6 +8,8 @@ sub rsp, 16
 sub rsp, 258
 sub rsp, 512
 sub rsp, 666
+add rsp, 8
+add rsp, 666
 mov [rsp - 8], rax
 mov [rsp - 16], rax
 mov [rsp - 258], rax

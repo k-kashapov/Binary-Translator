@@ -834,6 +834,8 @@ int ToBIN (TNode *root, const char *name)
 
     PrintB (SUB_RSP_1_BYTE (9));
     PrintB (SUB_RSP_4_BYTE (6));
+    PrintB (ADD_RSP_1_BYTE (6));
+    PrintB (ADD_RSP_4_BYTE (9));
     PrintB (RET_1_BYTE);
 
     err += mprotect (BinArr, pagesize, PROT_EXEC);
