@@ -8,15 +8,13 @@ static int OUT_USED = 0;
 
 static void PrintA (const char *msg, ...)
 {
-    for (int tab = 0; tab < Tabs; tab++)
-    {
-        fputc ('\t', AsmFile);
-    }
+    fprintf (AsmFile, "%08x:\t\t", ArrLen);
 
     va_list arg;
     va_start (arg, msg);
     vfprintf (AsmFile, msg, arg);
     va_end (arg);
+
     fprintf (AsmFile, "\n");
 }
 
@@ -51,6 +49,13 @@ static int AddVar (char isConst, int len, TNode *var)
 {
     int id = AddId (ASM_IDS, var->data, isConst, len);
 
+    // Listing
+    PrintA
+    (
+        "sub rsp, %d ; declared %.*s; [%d; %d]", // save value to stack
+        len * INT_LEN, var->len, var->declared, OFFS (id, 0), OFFS (id, len)
+    );
+
     // save space in stack
     PrintB (SUB_RSP_4_BYTE (len * INT_LEN));
 
@@ -70,6 +75,7 @@ static int PrintCallArgs (TNode *node)
 {
     if (!RIGHT || !CURR) return 0;
 
+    // Listing
     PrintA ("; call args");
 
     int pushed = 0;
@@ -78,8 +84,14 @@ static int PrintCallArgs (TNode *node)
     {
         NodeToAsm (RIGHT); // Evaluate the argument
 
-        // push to stack
+        LOG_MSG ("Call arg to stack: |%.*s| to [rsp - %d]",
+                 LEN, DECL, 24 + pushed * 8);
+
+        // Listing
         PrintA ("mov [rsp - %d], rax", 24 + pushed * 8);
+
+        // push to stack
+        PrintB (MOV_TO_STACK_4_BYTE (-(24 + pushed * 8)));
 
         CURR = LEFT;
     }
@@ -91,8 +103,11 @@ static int PrintCALL (TNode *node)
 {
     $ PrintCallArgs (RIGHT);
 
+    // Listing
     PrintA ("call f%ld ; call %.*s",
             abs (LEFT->data), LEFT->len, LEFT->declared);
+
+    PrintB (CALL_NEAR (0));
 
     return 0;
 }
@@ -102,11 +117,20 @@ static int PrintRET (TNode *node)
     $ int rErr = NodeToAsm (RIGHT);
     if (rErr) return rErr;
 
+    // Listing
     MOV_SS ("rsp", "rbp");
 
+    PrintB (MOV_RSP_RBP);
+
+    // Listing
     POP ("rbp ; stack frame return\n");
 
+    PrintB (POP_RBP);
+
+    // Listing
     PrintA ("ret");
+
+    PrintB (RET_1_BYTE);
 
     return 0;
 }
@@ -126,13 +150,21 @@ static int PrintDEF (TNode *node)
     LOG_MSG ("functon declared: %.*s\n",
              params->left->len, params->left->declared);
 
-    $ PrintA ("f%ld: ; def %.*s", hash,
+    // Listing
+    PrintA ("f%ld: ; def %.*s", hash,
               params->left->len, params->left->declared);
 
     Tabs++;
 
+    // Listing
     PrintA ("push rbp ; create stack frame");
+
+    PrintB (PUSH_RBP);
+
+    // Listing
     MOV_SS ("rbp", "rsp\n");
+
+    PrintB (MOV_RBP_RSP);
 
     int params_num = 0;
 
@@ -148,8 +180,11 @@ static int PrintDEF (TNode *node)
                  id, IDS[id].memOfs + 1, Frame, OFFS (id, 0), OFFS (id, 1));
     }
 
+    // Listing
     PrintA ("sub rsp, %d ; jump over parameters\n", params_num * INT_LEN);
     Curr_rsp += params_num;
+
+    PrintB (SUB_RSP_4_BYTE (params_num * INT_LEN));
 
     PrintSt (RIGHT);
 
@@ -170,8 +205,16 @@ static int PrintIN (TNode *node)
 
     IN_USED = 1;
 
+    // Listing
     PrintA ("xor rdi, rdi");
+
+    PrintB (XOR_RDI_RDI);
+
+    // Listing
     MOV_SS ("rsi", "inputbuf ; buffer for inputted value\n");
+
+    PrintB (LEA_RSI(0));
+
     MOV_SD ("rdx", 15);
 
     PrintA ("xor rax, rax");
@@ -795,18 +838,8 @@ static void PrintSTD_IN (void)
     return;
 }
 
-int ToBIN (TNode *root, const char *name)
+static int ReadyBuf (void)
 {
-    assert (root);
-    assert (name);
-
-    LOG_MSG ("jojo dio %d", 10);
-
-    // Found this on github: RustamSubkhankulov/BinaryTranslator
-    #ifdef LOGGING
-        __asm__ ("int 3");
-    #endif
-
     int pagesize = (int) sysconf(_SC_PAGE_SIZE);
     if (pagesize == -1)
     {
@@ -826,38 +859,61 @@ int ToBIN (TNode *root, const char *name)
     ArrCap = pagesize;
     ArrLen = 0;
 
-    #ifdef LOGGING
-        __asm__ ("int 3");
-    #endif
+    return 0;
+}
 
-    int err = 0; //NodeToAsm (root);
+int ToBIN (TNode *root, const char *name)
+{
+    assert (root);
+    assert (name);
 
-    PrintB (SUB_RSP_1_BYTE (9));
-    PrintB (SUB_RSP_4_BYTE (6));
-    PrintB (ADD_RSP_1_BYTE (6));
-    PrintB (ADD_RSP_4_BYTE (9));
-    PrintB (RET_1_BYTE);
+    DBINT;
 
-    err += mprotect (BinArr, pagesize, PROT_EXEC);
-    if (err) printf ("Node to asm: errors occured: %d", err);
+    int bufReady = ReadyBuf();
 
-    #ifdef LOGGING
-        __asm__ ("int 3");
-    #endif
-
-    void (*testFunc) (void) = (void (*) (void)) BinArr;
-    testFunc();
-
-    AsmFile = fopen (name, "wt");
+    AsmFile = fopen ("Listing.lst", "wt");
     if (!AsmFile)
     {
         LOG_ERR ("Unable to open asm file; name = %s\n", name);
         return OPEN_FILE_FAILED;
     }
 
-    Bflush (AsmFile);
+// ---------------- <Translation> -------------
 
+    DBINT;
+
+    int err = NodeToAsm (root);
+
+    // PrintB (SUB_RSP_1_BYTE (9));
+    // PrintB (SUB_RSP_4_BYTE (6));
+    // PrintB (ADD_RSP_1_BYTE (6));
+    // PrintB (ADD_RSP_4_BYTE (9));
+    // PrintB (RET_1_BYTE);
+
+// ---------------- <Testing> -----------------
+
+    err += mprotect (BinArr, ArrCap, PROT_EXEC);
+    if (err) printf ("Node to asm: errors occured: %d", err);
+
+    DBINT;
+
+    // void (*testFunc) (void) = (void (*) (void)) BinArr;
+    // testFunc();
+
+// ---------------- <Finishing> ---------------
+
+    DBINT;
+
+    FILE *BinFile = fopen (name, "wt");
+    if (!BinFile)
+    {
+        LOG_ERR ("Unable to open asm file; name = %s\n", name);
+        return OPEN_FILE_FAILED;
+    }
+
+    Bflush (BinFile);
     fclose (AsmFile);
+    fclose (BinFile);
     free (BinArr);
 
     return err;

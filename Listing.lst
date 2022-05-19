@@ -1,0 +1,35 @@
+00000000:		f1058: ; def main
+00000000:		push rbp ; create stack frame
+00000001:		mov rbp, rsp
+
+00000004:		sub rsp, 0 ; jump over parameters
+
+0000000b:		mov rax, 0 ; const value << 9
+0000000b:		sub rsp, 8 ; declared ЛошедьБ; [8; 16]
+00000012:		mov [rbp - 8], rax ; ЛошедьБ = rax
+00000012:		
+00000012:		mov rax, 0 ; const value << 9
+00000012:		sub rsp, 8 ; declared ЛошедьФ; [16; 24]
+00000019:		mov [rbp - 16], rax ; ЛошедьФ = rax
+00000019:		
+00000019:		xor rdi, rdi
+00000019:		mov rsi, inputbuf ; buffer for inputted value
+
+00000019:		mov rdx, 15
+00000019:		xor rax, rax
+00000019:		syscall
+00000019:		mov rcx, rax
+00000019:		call atoi
+00000019:		sal rax, 9 ; pseudo-float emul
+00000019:		mov [rbp - 8], rax ; ЛошедьБ = rax
+00000019:		
+00000019:		mov rax, [rbp - 8] ; ЛошедьБ
+00000019:		call out
+00000019:		
+00000019:		mov rax, [rbp - 8] ; ЛошедьБ
+00000019:		mov rsp, rbp
+0000001c:		pop rbp ; stack frame return
+
+0000001d:		ret
+0000001e:		
+0000001e:		

@@ -4,6 +4,13 @@
 #define LOG_NAME "ToBIN"
 #include "Lang.h"
 
+// Found this on github: RustamSubkhankulov/BinaryTranslator
+#ifdef LOGGING
+    #define DBINT __asm__ ("int 3");
+#else
+    #define DBINT ;
+#endif
+
 struct INSTRUCTION
 {
     int64_t opcode  = 0;
@@ -50,6 +57,7 @@ static int  PrintVar      (TNode *node);
 static int  PrintSt       (TNode *node);
 static void PrintSTD_OUT  (void);
 static void PrintSTD_IN   (void);
+static int  ReadyBuf      (void);
 static int  NodeToAsm     (TNode *node);
 
 #define CURR    node

@@ -1,9 +1,23 @@
-//      MNEMO                               OPCODE     LEN  ARG_LEN   ARG
-#define SUB_RSP_1_BYTE(arg_) (INSTRUCTION { 0xEC8348,    3,       1, arg_ })
-#define SUB_RSP_4_BYTE(arg_) (INSTRUCTION { 0xEC8148,    3,       4, arg_ })
-#define ADD_RSP_1_BYTE(arg_) (INSTRUCTION { 0xC48348,    3,       1, arg_ })
-#define ADD_RSP_4_BYTE(arg_) (INSTRUCTION { 0xC48148,    3,       4, arg_ })
-#define RET_1_BYTE           (INSTRUCTION { 0xC3,        1,       0,    0 })
+//      MNEMO                                    OPCODE     LEN  ARG_LEN   ARG
+#define SUB_RSP_1_BYTE(arg_)      (INSTRUCTION { 0xEC8348,    3,       1, arg_ })
+#define SUB_RSP_4_BYTE(arg_)      (INSTRUCTION { 0xEC8148,    3,       4, arg_ })
+#define ADD_RSP_1_BYTE(arg_)      (INSTRUCTION { 0xC48348,    3,       1, arg_ })
+#define ADD_RSP_4_BYTE(arg_)      (INSTRUCTION { 0xC48148,    3,       4, arg_ })
+#define RET_1_BYTE                (INSTRUCTION { 0xC3,        1,       0,    0 })
+
+#define MOV_TO_STACK_4_BYTE(arg_) (INSTRUCTION { 0x24848948,  4,       4, arg_ })
+
+#define MOV_RSP_RBP               (INSTRUCTION { 0xEC8948,    3,       0,    0 })
+#define POP_RBP                   (INSTRUCTION { 0x5d,        1,       0,    0 })
+
+#define CALL_NEAR(arg_)           (INSTRUCTION { 0xE8,        1,       4, arg_ })
+
+#define PUSH_RBP                  (INSTRUCTION { 0x55,        1,       0,    0 })
+#define MOV_RBP_RSP               (INSTRUCTION { 0xE58948,    3,       0,    0 })
+
+#define XOR_RDI_RDI               (INSTRUCTION { 0xFF3148,    3,       0,    0 })
+
+#define LEA_RSI(arg__)            (INSTRUCTION { 0x25348D48,  4,       4,    0 })
 
 /*
 #define BIN (48 83 ec 08          , "sub    rsp,0x8")
