@@ -10,14 +10,39 @@
 #define MOV_RSP_RBP               (INSTRUCTION { 0xEC8948,    3,       0,    0 })
 #define POP_RBP                   (INSTRUCTION { 0x5d,        1,       0,    0 })
 
-#define CALL_NEAR(arg_)           (INSTRUCTION { 0xE8,        1,       4, arg_ })
+#define CALL_NEAR_4_BYTE(arg_)    (INSTRUCTION { 0xE8,        1,       4, arg_ })
 
 #define PUSH_RBP                  (INSTRUCTION { 0x55,        1,       0,    0 })
 #define MOV_RBP_RSP               (INSTRUCTION { 0xE58948,    3,       0,    0 })
 
 #define XOR_RDI_RDI               (INSTRUCTION { 0xFF3148,    3,       0,    0 })
+#define XOR_RAX_RAX               (INSTRUCTION { 0xC03148,    3,       0,    0 })
 
-#define LEA_RSI(arg__)            (INSTRUCTION { 0x25348D48,  4,       4,    0 })
+#define LEA_RSI_4_BYTE(arg_)      (INSTRUCTION { 0x25348D48,  4,       4, arg_ })
+
+#define MOV_RDX_4_BYTE(arg_)      (INSTRUCTION { 0xBA,        1,       4, arg_ })
+
+#define SYSCALL                   (INSTRUCTION { 0x050F,      2,       0,    0 })
+
+#define MOV_RCX_RAX               (INSTRUCTION { 0xC18948,    3,       0,    0 })
+#define SHL_RAX_1_BYTE(arg_)      (INSTRUCTION { 0xE0C148,    4,       1, arg_ })
+#define SAR_RAX_1_BYTE(arg_)      (INSTRUCTION { 0xF8C148,    4,       1, arg_ })
+
+#define MOV_R12_RSP               (INSTRUCTION { 0xE48949,    3,       0,    0 })
+
+#define TEST_RAX_RAX              (INSTRUCTION { 0xC08548,    3,       0,    0 })
+
+#define JE_1_BYTE(arg_)           (INSTRUCTION { 0x74,        1,       1, arg_ })
+
+#define MOV_RSP_R12               (INSTRUCTION { 0xE4894C,    3,       0,    0 })
+
+#define JMP_4_BYTE(arg_)          (INSTRUCTION { 0xE9,        1,       4, arg_ })
+
+#define PUSH_RAX                  (INSTRUCTION { 0x50,        1,       0,    0 })
+#define POP_RBX                   (INSTRUCTION { 0x5B,        1,       0,    0 })
+
+#define ADD_RAX_RBX               (INSTRUCTION { 0xD80148,    3,       0,    0 })
+#define SUB_RAX_RBX               (INSTRUCTION { 0xD82948,    3,       0,    0 })
 
 /*
 #define BIN (48 83 ec 08          , "sub    rsp,0x8")

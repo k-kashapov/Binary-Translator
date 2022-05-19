@@ -213,12 +213,22 @@ static int PrintIN (TNode *node)
     // Listing
     MOV_SS ("rsi", "inputbuf ; buffer for inputted value\n");
 
-    PrintB (LEA_RSI(0));
+    PrintB (LEA_RSI(0xC0DEDEAD));
 
+    // Listing
     MOV_SD ("rdx", 15);
 
+    PrintB (MOV_RDX (15));
+
+    // Listing
     PrintA ("xor rax, rax");
+
+    PrintB (XOR_RAX_RAX);
+
+    // Listing
     PrintA ("syscall");
+
+    PrintB (SYSCALL);
 
     MOV_SS ("rcx", "rax");
     PrintA ("call atoi");

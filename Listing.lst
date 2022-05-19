@@ -13,23 +13,23 @@
 00000019:		mov [rbp - 16], rax ; ЛошедьФ = rax
 00000019:		
 00000019:		xor rdi, rdi
-00000019:		mov rsi, inputbuf ; buffer for inputted value
+0000001c:		mov rsi, inputbuf ; buffer for inputted value
 
-00000019:		mov rdx, 15
-00000019:		xor rax, rax
-00000019:		syscall
-00000019:		mov rcx, rax
-00000019:		call atoi
-00000019:		sal rax, 9 ; pseudo-float emul
-00000019:		mov [rbp - 8], rax ; ЛошедьБ = rax
-00000019:		
-00000019:		mov rax, [rbp - 8] ; ЛошедьБ
-00000019:		call out
-00000019:		
-00000019:		mov rax, [rbp - 8] ; ЛошедьБ
-00000019:		mov rsp, rbp
-0000001c:		pop rbp ; stack frame return
+00000024:		mov rdx, 15
+00000024:		xor rax, rax
+00000024:		syscall
+00000024:		mov rcx, rax
+00000024:		call atoi
+00000024:		sal rax, 9 ; pseudo-float emul
+00000024:		mov [rbp - 8], rax ; ЛошедьБ = rax
+00000024:		
+00000024:		mov rax, [rbp - 8] ; ЛошедьБ
+00000024:		call out
+00000024:		
+00000024:		mov rax, [rbp - 8] ; ЛошедьБ
+00000024:		mov rsp, rbp
+00000027:		pop rbp ; stack frame return
 
-0000001d:		ret
-0000001e:		
-0000001e:		
+00000028:		ret
+00000029:		
+00000029:		
