@@ -54,18 +54,6 @@ static int ProcessAlpha (Reader *rdr)
                 break;
             }
         }
-
-        if (type == TYPE_VAR)
-        {
-            for (int unary = 0; unary < UnaryNum; unary++)
-            {
-                if (hash == UnaryFuncs[unary])
-                {
-                    type = TYPE_UNARY;
-                    break;
-                }
-            }
-        }
     }
 
     CURR->type     = type;

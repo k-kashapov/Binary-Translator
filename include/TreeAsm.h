@@ -29,7 +29,6 @@ static int  PrintConst    (TNode *node);
 static int  PrintID       (TNode *node);
 static int  PrintVar      (TNode *node);
 static int  PrintSt       (TNode *node);
-static int  PrintUNARY    (TNode *node);
 static int  NodeToAsm     (TNode *node);
 
 const char *RES    = "rx"; /* a register for calculations result

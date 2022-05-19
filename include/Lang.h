@@ -48,14 +48,6 @@ enum LANG_EXIT_CODES
 
 int64_t SimpleHash (const void *data, int len);
 
-const int64_t UnaryFuncs[] =
-{
-    SimpleHash ("sin",  3),
-    SimpleHash ("cos",  3),
-    SimpleHash ("sqrt", 4)
-};
-const int UnaryNum = sizeof (UnaryFuncs) / sizeof (int64_t);
-
 #define SERVICE_HASH(val) SimpleHash (val, strlen (val))
 const int64_t ServiceNodes[] =
 {

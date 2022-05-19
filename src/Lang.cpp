@@ -113,18 +113,6 @@ TNode *GetID (Trans *trans)
 {
     TNode *root = GetTok (trans);
 
-    for (int func_id = 0; func_id < UnaryNum; func_id++)
-    {
-        if (root->data == UnaryFuncs[func_id])
-        {
-            TNode *action = GetTok (trans);
-            action->type  = TYPE_UNARY;
-            MovePtr (trans);
-            action->right = GetP (trans);
-            return action;
-        }
-    }
-
     int idNum = FindId (TRANS_IDS, root->data);
 
     if (idNum >= 0)

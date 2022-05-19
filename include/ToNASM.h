@@ -34,7 +34,6 @@ static int  PrintConst    (TNode *node);
 static int  PrintID       (TNode *node);
 static int  PrintVar      (TNode *node);
 static int  PrintSt       (TNode *node);
-static int  PrintUNARY    (TNode *node);
 static void PrintSTD_OUT  (void);
 static void PrintSTD_IN   (void);
 static int  NodeToAsm     (TNode *node);

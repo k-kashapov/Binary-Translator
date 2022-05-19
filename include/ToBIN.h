@@ -22,10 +22,11 @@ static char *BinArr    = NULL;
 static int  ArrLen     = 0;
 static int  ArrCap     = 0;
 
-const static int INIT_CAP = 512; // initial binary array capacity
+// initial binary array capacity = page size
+const static int INIT_CAP = 512;
 const static int INT_LEN  = 8;   // length of single int
 
-static int  PrintB        (INSTRUCTION *ins);
+static int  PrintB        (INSTRUCTION ins);
 static int  Bflush        (FILE *flushTO);
 static int  AddVar        (char isConst, int len, TNode *var);
 static int  Comp          (const char *action, TNode *node);
@@ -47,7 +48,6 @@ static int  PrintConst    (TNode *node);
 static int  PrintID       (TNode *node);
 static int  PrintVar      (TNode *node);
 static int  PrintSt       (TNode *node);
-static int  PrintUNARY    (TNode *node);
 static void PrintSTD_OUT  (void);
 static void PrintSTD_IN   (void);
 static int  NodeToAsm     (TNode *node);

@@ -1,4 +1,7 @@
 #include "ToBIN.h"
+#include <sys/mman.h>
+#include <unistd.h>
+#include "NASM_BIN_TABLE.h"
 
 static int IN_USED  = 0;
 static int OUT_USED = 0;
@@ -17,27 +20,23 @@ static void PrintA (const char *msg, ...)
     fprintf (AsmFile, "\n");
 }
 
-static int PrintB (INSTRUCTION *ins)
+static int PrintB (INSTRUCTION ins)
 {
-    if (ArrCap < ArrLen + ins->len + 1)
+    LOG_MSG ("Printing to binary : (0x%08lx) of len (%d)", ins.opcode, ins.len);
+    sprintf (BinArr + ArrLen, "%.*s", ins.len, (const char *)(&ins.opcode));
+    ArrLen += ins.len;
+
+    if (ins.arg_len > 0)
     {
-        void *tmp = realloc (BinArr, ArrCap * 2);
-        if (!tmp) return MEM_ALLOC_ERR;
+        LOG_MSG ("Printing to binary : (0x%08lx) of len (%d)",
+                 ins.arg, ins.arg_len);
 
-        BinArr = (char *) tmp;
-        ArrCap *= 2;
-    }
+        sprintf (
+                    BinArr + ArrLen, "%.*s",
+                    ins.arg_len, (const char *) &(ins.arg)
+                );
 
-    printf ("printing to bin\n");
-
-    sprintf (BinArr + ArrLen, "%.*s", ins->len, (const char *)(&ins->opcode));
-    ArrLen += ins->len;
-
-    if (ins->arg_len > 0)
-    {
-        printf ("arg to bin\n");
-        sprintf (BinArr + ArrLen, "%.*s", ins->arg_len, (const char *) &(ins->arg));
-        ArrLen += ins->arg_len;
+        ArrLen += ins.arg_len;
     }
 
     return 0;
@@ -52,11 +51,8 @@ static int AddVar (char isConst, int len, TNode *var)
 {
     int id = AddId (ASM_IDS, var->data, isConst, len);
 
-    PrintA
-    (
-        "sub rsp, %d ; declared %.*s; [%d; %d]", // save value to stack
-        len * INT_LEN, var->len, var->declared, OFFS (id, 0), OFFS (id, len)
-    );
+    // save space in stack
+    PrintB (SUB_RSP_4_BYTE (len * INT_LEN));
 
     Curr_rsp += len;
 
@@ -611,25 +607,6 @@ static int PrintSt (TNode *node)
 
 // ================ <Other> ===================
 
-static int PrintUNARY (TNode *node)
-{
-    if (!RIGHT) return 1;
-    NodeToAsm (RIGHT);
-
-    size_t func_num = sizeof (UnaryFuncs) / sizeof (*UnaryFuncs);
-
-    for (size_t func = 0; func < func_num; func++)
-    {
-        if (DATA == UnaryFuncs[func])
-        {
-            PrintA ("%.*s", LEN, DECL);
-            return 0;
-        }
-    }
-
-    return 1;
-}
-
 static int NodeToAsm (TNode *node)
 {
     $ assert (CURR);
@@ -648,20 +625,15 @@ static int NodeToAsm (TNode *node)
             $ return PrintOP (CURR);
         case TYPE_SERVICE:
             $ return PrintSERV (CURR);
-        case TYPE_UNARY:
-            $ return PrintUNARY (CURR);
         default:
             break;
     }
-
-    PrintA ("; node (%.*s) of type %d", LEN, DECL, node->type);
 
     return OK;
 }
 
 // The following 2 functions are total cringe, however their implementation
 // is acceptable
-
 static void PrintSTD_OUT (void)
 {
     PrintA (
@@ -825,62 +797,54 @@ static void PrintSTD_IN (void)
 
 int ToBIN (TNode *root, const char *name)
 {
-    // main func hash = f1058
+    assert (root);
+    assert (name);
 
-    BinArr = (char *) calloc (sizeof (char), INIT_CAP);
+    LOG_MSG ("jojo dio %d", 10);
+
+    // Found this on github: RustamSubkhankulov/BinaryTranslator
+    #ifdef LOGGING
+        __asm__ ("int 3");
+    #endif
+
+    int pagesize = (int) sysconf(_SC_PAGE_SIZE);
+    if (pagesize == -1)
+    {
+        LOG_ERR ("Pagesize unknown: %d\n", pagesize);
+        return 0;
+    }
+
+    BinArr = (char *) aligned_alloc (pagesize, pagesize * sizeof (char));
     if (!BinArr)
     {
         LOG_ERR ("Unable to allocate memory of len = %d\n", INIT_CAP);
         return MEM_ALLOC_ERR;
     }
 
-    ArrCap = INIT_CAP;
+    memset (BinArr, 0x00, pagesize * sizeof (char));
+
+    ArrCap = pagesize;
     ArrLen = 0;
 
-    //
-    // PrintA ("global _start\n"
-    //
-    //         "section .data\n\n"
-    //
-    //         "const_for_pow: dd 0x200        ; memory for float computations\n"
-    //
-    //         "section .text\n\n"
-    //
-    //         "_start:\n"
-    //         "\tpush rbx   ; push everything\n"
-    //         "\tpush rbp   ; push everything\n"
-    //         "\tpush r12   ; push everything\n"
-    //         "\tpush r13   ; push everything\n"
-    //         "\tpush r14   ; push everything\n"
-    //         "\tpush r15   ; push everything\n\n"
-    //
-    //         "\tcall f1058 ; call main\n\n"
-    //
-    //         "\tpop rbx   ; restore initial regs state\n"
-    //         "\tpop rbp   ; restore initial regs state\n"
-    //         "\tpop r12   ; restore initial regs state\n"
-    //         "\tpop r13   ; restore initial regs state\n"
-    //         "\tpop r14   ; restore initial regs state\n"
-    //         "\tpop r15   ; restore initial regs state\n\n"
-    //
-    //         "\tmov rdi, rax\n"
-    //         "\tmov rax, 0x3C\n"
-    //         "\tsyscall\n");
-    //
-    // IN_USED = 0;
-    // OUT_USED = 0;
-    //
-    // int err = NodeToAsm (root);
-    //
-    // if (OUT_USED)
-    // {
-    //     PrintSTD_OUT();
-    // }
-    //
-    // if (IN_USED)
-    // {
-    //     PrintSTD_IN();
-    // }
+    #ifdef LOGGING
+        __asm__ ("int 3");
+    #endif
+
+    int err = 0; //NodeToAsm (root);
+
+    PrintB (SUB_RSP_1_BYTE (9));
+    PrintB (SUB_RSP_4_BYTE (6));
+    PrintB (RET_1_BYTE);
+
+    err += mprotect (BinArr, pagesize, PROT_EXEC);
+    if (err) printf ("Node to asm: errors occured: %d", err);
+
+    #ifdef LOGGING
+        __asm__ ("int 3");
+    #endif
+
+    void (*testFunc) (void) = (void (*) (void)) BinArr;
+    testFunc();
 
     AsmFile = fopen (name, "wt");
     if (!AsmFile)
@@ -889,14 +853,10 @@ int ToBIN (TNode *root, const char *name)
         return OPEN_FILE_FAILED;
     }
 
-    INSTRUCTION ins = { 0xC3C3C3C3, 4, 0, 0 };
-
-    int err = PrintB (&ins);
     Bflush (AsmFile);
 
     fclose (AsmFile);
-
-    if (err) printf ("Node to asm: errors occured: %d", err);
+    free (BinArr);
 
     return err;
 }

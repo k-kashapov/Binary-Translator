@@ -1,6 +1,9 @@
-// We will define BIN (command, binary representation, byte length, arg_len)
+//      MNEMO                               OPCODE     LEN  ARG_LEN   ARG
+#define SUB_RSP_1_BYTE(arg_) (INSTRUCTION { 0xEC8348,    3,       1, arg_ })
+#define SUB_RSP_4_BYTE(arg_) (INSTRUCTION { 0xEC8148,    3,       4, arg_ })
+#define RET_1_BYTE           (INSTRUCTION { 0xC3,        1,       0,    0 })
 
-BIN (48 83 ec 08        	, "sub    rsp,0x8")
+/*
 BIN (48 83 ec 10        	, "sub    rsp,0x10")
 BIN (48 81 ec 02 01 00 00   , "sub    rsp,0x102")
 BIN (48 81 ec 00 02 00 00   , "sub    rsp,0x200")
@@ -34,3 +37,4 @@ BIN (50                 	, "push   rax")
 BIN (5b                 	, "pop    rbx")
 BIN (48 01 d8           	, "add    rax,rbx")
 BIN (48 29 d8           	, "sub    rax,rbx")
+*/

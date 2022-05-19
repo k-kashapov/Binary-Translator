@@ -3,7 +3,7 @@ all: k++
 bin/all: k++
 		 mv k++ /bin/k++
 
-basicFlags = -I include -Wall -Wextra -O2 -g -D LOGGING -no-pie
+basicFlags = -I include -Wall -Wextra -O2 -g -D LOGGING -no-pie -masm=intel
 
 ldLibs = /lib/x86_64-linux-gnu/libc-2.31.so -lm --dynamic-linker /lib64/ld-linux-x86-64.so.2
 

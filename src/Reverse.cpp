@@ -349,24 +349,6 @@ static int PrintSt (TNode *node)
     return rErr;
 }
 
-static int PrintUNARY (TNode *node)
-{
-    if (!RIGHT) return 1;
-    for (size_t func = 0; func < sizeof (UnaryFuncs) / sizeof (*UnaryFuncs); func++)
-    {
-        if (DATA == UnaryFuncs[func])
-        {
-            PrintA ("%.*s Биба", LEN, DECL);
-        }
-    }
-
-    NodeToAnek (RIGHT);
-
-    PrintA ("Боба");
-
-    return 0;
-}
-
 static int NodeToAnek (TNode *node)
 {
     $ assert (CURR);
@@ -385,8 +367,6 @@ static int NodeToAnek (TNode *node)
             $ return PrintOP (CURR);
         case TYPE_SERVICE:
             $ return PrintSERV (CURR);
-        case TYPE_UNARY:
-            $ return PrintUNARY (CURR);
         default:
             break;
     }
