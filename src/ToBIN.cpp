@@ -632,7 +632,7 @@ static int PrintConst (TNode *node)
     // Listing
     PrintA ("mov rax, %d ; const value << 9", DATA << NUMS_AFTER_POINT);
 
-    PrintB ();
+    PrintB (MOV_RAX_4_BYTE (DATA << NUMS_AFTER_POINT));
 
     return 0;
 }
