@@ -20,13 +20,14 @@ static void PrintA (const char *msg, ...)
 
 static int PrintB (INSTRUCTION ins)
 {
-    LOG_MSG ("Printing to binary : (0x%08lx) of len (%d)", ins.opcode, ins.len);
+    LOG_MSG ("Printing to binary : (0x%08lx) of len (%d) at [0x%08lx]",
+             ins.opcode, ins.len, ArrLen);
     sprintf (BinArr + ArrLen, "%.*s", ins.len, (const char *)(&ins.opcode));
     ArrLen += ins.len;
 
     if (ins.arg_len > 0)
     {
-        LOG_MSG ("Printing to binary : (0x%08lx) of len (%d)",
+        LOG_MSG ("Printing arg : (0x%08lx) of len (%d)",
                  ins.arg, ins.arg_len);
 
         sprintf (
@@ -107,7 +108,7 @@ static int PrintCALL (TNode *node)
     PrintA ("call f%ld ; call %.*s",
             abs (LEFT->data), LEFT->len, LEFT->declared);
 
-    PrintB (CALL_NEAR (0));
+    PrintB (CALL_NEAR_4_BYTE (0));
 
     return 0;
 }
@@ -154,8 +155,6 @@ static int PrintDEF (TNode *node)
     PrintA ("f%ld: ; def %.*s", hash,
               params->left->len, params->left->declared);
 
-    Tabs++;
-
     // Listing
     PrintA ("push rbp ; create stack frame");
 
@@ -190,8 +189,6 @@ static int PrintDEF (TNode *node)
 
     Curr_rsp -= params_num;
 
-    Tabs--;
-
     free (IdsArr);
     IdsArr = NULL;
     IdsNum = 0;
@@ -213,12 +210,12 @@ static int PrintIN (TNode *node)
     // Listing
     MOV_SS ("rsi", "inputbuf ; buffer for inputted value\n");
 
-    PrintB (LEA_RSI(0xC0DEDEAD));
+    PrintB (LEA_RSI_4_BYTE (0xC0DEDEAD));
 
     // Listing
     MOV_SD ("rdx", 15);
 
-    PrintB (MOV_RDX (15));
+    PrintB (MOV_RDX_4_BYTE (15));
 
     // Listing
     PrintA ("xor rax, rax");
@@ -230,9 +227,20 @@ static int PrintIN (TNode *node)
 
     PrintB (SYSCALL);
 
+    // Listing
     MOV_SS ("rcx", "rax");
+
+    PrintB (MOV_RCX_RAX);
+
+    // Listing
     PrintA ("call atoi");
+
+    PrintB (CALL_NEAR_4_BYTE (-3));
+
+    // Listing
     FLOAT_L ("rax");
+
+    PrintB (SHL_RAX_1_BYTE (NUMS_AFTER_POINT));
 
     return 0;
 }
@@ -245,7 +253,10 @@ static int PrintOUT (TNode *node)
 
     NodeToAsm (RIGHT);
 
+    // Listing
     PrintA ("call out");
+
+    PrintB (CALL_NEAR_4_BYTE (0xD0DE));
 
     return 0;
 }
@@ -256,28 +267,51 @@ static int PrintWHILE (TNode *node)
     int    init_rsp     = Curr_rsp;
     int    init_var_num = IdsNum;
 
+    // Listing
     MOV_SS ("r12", "rsp ; save rsp to rcx");
+
+    PrintB (MOV_R12_RSP);
 
     int localWhileNum = whileNum;
     whileNum++;
 
+	//Listing
     PrintA ("; while");
-    Tabs++;
 
+    int whileStartAddr = ArrLen;
+
+	//Listing
     PrintA (".%dwhile:", localWhileNum);
     NodeToAsm (LEFT);
 
+    // Listing
     PrintA ("test rax, rax");
+
+    PrintB (TEST_RAX_RAX);
+
+	//Listing
     PrintA ("je .%dwhileEnd", localWhileNum);
+
+    PrintB (JE_1_BYTE (0));
+    int jeArgPos = ArrLen - 1;
 
     if (RIGHT)
         NodeToAsm (RIGHT);
 
-    MOV_SS ("rsp", "r12 ; forget any variables created during the loop");
+    //Listing
+    MOV_SS ("rsp", "r12 ; forget any variables created during the loop")
+
+    PrintB (MOV_RSP_R12);
+
+	//Listing
     PrintA ("jmp .%dwhile", localWhileNum);
 
+    PrintB (JMP_4_BYTE (whileStartAddr - ArrLen - 5));
+
+	//Listing
     PrintA (".%dwhileEnd:", localWhileNum);
-    Tabs--;
+
+    BinArr[jeArgPos] = (unsigned char) (ArrLen - jeArgPos - 1);
 
     RmId (ASM_IDS, IdsNum - init_var_num);
 
@@ -292,25 +326,47 @@ static int PrintIF (TNode *node)
     int localIfNum = ifNum;
     ifNum++;
 
+    // Listing
     PrintA ("; if statement");
-    Tabs++;
+
     NodeToAsm (LEFT);
 
+    // Listing
     PrintA ("test rax, rax");
+
+    PrintB (TEST_RAX_RAX);
+
+    // Listing
     PrintA ("je .%dfalse\n", localIfNum);
+
+    PrintB (JE_1_BYTE (0));
+
+    int jeArgPos = ArrLen - 1;
 
     TNode *decis = RIGHT;
 
     if (decis->left)
         NodeToAsm (decis->left);
+
+    // Listing
     PrintA ("jmp .%denif\n", localIfNum);
 
+    PrintB (JMP_4_BYTE (0));
+
+    int jmpArgPos = ArrLen - 4;
+
+    // Listing
     PrintA (".%dfalse:\n", localIfNum);
+
+    BinArr[jeArgPos] = (unsigned char) (ArrLen - jeArgPos - 1);
+
     if (decis->right)
         NodeToAsm (decis->right);
 
+    // Listing
     PrintA (".%denif:\n", localIfNum);
-    Tabs--;
+
+    BinArr[jmpArgPos] = (int32_t) (ArrLen - jmpArgPos - 1);
 
     return 0;
 }
@@ -335,17 +391,20 @@ static int PrintSERV (TNode *node)
 
 #define OP_CASE(op, act)                                                        \
     case op:                                                                    \
-        Tabs++;                                                                 \
-\
         res = NodeToAsm (RIGHT);                                                \
+        /* Listing */                                                           \
         PUSH ("rax\n");                                                         \
-\
+        PrintB (PUSH_RAX);                                                      \
+                                                                                \
         res += NodeToAsm (LEFT);                                                \
+        /* Listing */                                                           \
         POP ("rbx\n");                                                          \
-\
-        PrintA (act " rax, rbx\n");                                             \
-\
-        Tabs--;                                                                 \
+        PrintB (POP_RBX);                                                       \
+                                                                                \
+        /* Listing */                                                           \
+        PrintA (#act " rax, rbx\n");                                            \
+        PrintB (act##_RAX_RBX);                                                 \
+                                                                                \
         break;
 
 #define COMP_CASE(val, action) case val: Comp (action, node); break;
@@ -364,11 +423,11 @@ static int PrintOP (TNode *node)
         COMP_CASE (EE, "je");
         COMP_CASE (AE, "jge");
         COMP_CASE (BE, "jle");
-        COMP_CASE (NE, "jn");
+        COMP_CASE (NE, "jne");
         COMP_CASE ('>', "jg");
         COMP_CASE ('<', "jl");
-        OP_CASE   ('+', "add");
-        OP_CASE   ('-', "sub");
+        OP_CASE   ('+', ADD);
+        OP_CASE   ('-', SUB);
 
         case '*':
         {
@@ -403,7 +462,6 @@ static int Comp (const char *action, TNode *node)
     static int cmpNum = 0;
 
     PrintA ("; %s", action);
-    Tabs++;
 
     NodeToAsm (LEFT);
     MOV_SS ("rbx", "rax ; save left to rbx");
@@ -423,7 +481,6 @@ static int Comp (const char *action, TNode *node)
 
     PrintA (".%dcmpEnd:\n", cmpNum);
 
-    Tabs--;
     cmpNum++;
 
     return 0;
@@ -438,8 +495,6 @@ static int PrintNeg (void)
 
 static int PrintPow (TNode *node)
 {
-    Tabs++;
-
     int err = NodeToAsm (LEFT);
     if (err) return err;
 
@@ -493,15 +548,11 @@ static int PrintPow (TNode *node)
 
     PrintA (".DontPow:");
 
-    Tabs--;
-
     return 0;
 }
 
 static int PrintDiv (TNode *node)
 {
-    Tabs++;
-
     int err = NodeToAsm (RIGHT);
     if (err) return err;
 
@@ -517,14 +568,11 @@ static int PrintDiv (TNode *node)
 
     PrintA ("idiv rbx\n");
 
-    Tabs--;
     return 0;
 }
 
 static int PrintMul (TNode *node)
 {
-    Tabs++;
-
     int err = NodeToAsm (RIGHT);
     if (err) return err;
 
@@ -538,8 +586,6 @@ static int PrintMul (TNode *node)
     PrintA ("imul rbx\n");
 
     FLOAT_R ("rax");
-
-    Tabs--;
 
     return 0;
 }
@@ -583,7 +629,10 @@ static int PrintAssn (TNode *node)
 
 static int PrintConst (TNode *node)
 {
+    // Listing
     PrintA ("mov rax, %d ; const value << 9", DATA << NUMS_AFTER_POINT);
+
+    PrintB ();
 
     return 0;
 }
@@ -622,8 +671,8 @@ static int PrintVar (TNode *node)
             len = (int) RIGHT->data;
         }
 
-        PrintA ("mov rax, [%s - %d] ; %.*s",
-                RBP, OFFS (id_pos, len), LEN, DECL);
+        PrintA ("mov rax, [rbp - %d] ; %.*s",
+                OFFS (id_pos, len), LEN, DECL);
     }
     else
     {
@@ -892,23 +941,20 @@ int ToBIN (TNode *root, const char *name)
 
     DBINT;
 
-    int err = NodeToAsm (root);
+    PrintA ("const_for_pow: dq 512");
+    PrintB (INSTRUCTION { 0x512, 8, 0, 0});
 
-    // PrintB (SUB_RSP_1_BYTE (9));
-    // PrintB (SUB_RSP_4_BYTE (6));
-    // PrintB (ADD_RSP_1_BYTE (6));
-    // PrintB (ADD_RSP_4_BYTE (9));
-    // PrintB (RET_1_BYTE);
+    int err = NodeToAsm (root);
 
 // ---------------- <Testing> -----------------
 
-    err += mprotect (BinArr, ArrCap, PROT_EXEC);
+    err += mprotect (BinArr, ArrCap, PROT_EXEC | PROT_READ);
     if (err) printf ("Node to asm: errors occured: %d", err);
 
     DBINT;
 
-    // void (*testFunc) (void) = (void (*) (void)) BinArr;
-    // testFunc();
+    void (*testFunc) (void) = (void (*) (void)) (BinArr + 8);
+    testFunc();
 
 // ---------------- <Finishing> ---------------
 
@@ -922,8 +968,15 @@ int ToBIN (TNode *root, const char *name)
     }
 
     Bflush (BinFile);
-    fclose (AsmFile);
-    fclose (BinFile);
+
+    if (AsmFile)
+        fclose (AsmFile);
+
+    if (BinFile)
+        fclose (BinFile);
+
+    mprotect (BinArr, ArrCap, PROT_READ | PROT_WRITE);
+
     free (BinArr);
 
     return err;

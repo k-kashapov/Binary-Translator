@@ -22,7 +22,6 @@ struct INSTRUCTION
 static FILE *AsmFile   = NULL;
 static int  IdsNum     = 0;
 static Id   *IdsArr    = NULL;
-static int  Tabs       = 0;
 static int  Curr_rsp   = 0;
 static int  Frame      = 0;
 static char *BinArr    = NULL;
@@ -85,12 +84,12 @@ static int  NodeToAsm     (TNode *node);
 #define MOV_SS(dst, src) PrintA ("mov %s, %s", dst, src);
 #define MOV_SD(dst, src) PrintA ("mov %s, %d", dst, src);
 
-#define SHR(tgt, num) PrintA ("sar %s, %d ; pseudo-float emul", tgt, num);
-#define SHL(tgt, num) PrintA ("sal %s, %d ; pseudo-float emul", tgt, num);
+#define SAR(tgt, num) PrintA ("sar %s, %d ; pseudo-float emul", tgt, num);
+#define SHL(tgt, num) PrintA ("shl %s, %d ; pseudo-float emul", tgt, num);
 
 #define NUMS_AFTER_POINT 9
 
-#define FLOAT_R(tgt) SHR (tgt, NUMS_AFTER_POINT)
+#define FLOAT_R(tgt) SAR (tgt, NUMS_AFTER_POINT)
 #define FLOAT_L(tgt) SHL (tgt, NUMS_AFTER_POINT)
 
 #define INC(trgt) PrintA ("inc %s", trgt);
