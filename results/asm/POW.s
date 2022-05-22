@@ -72,44 +72,45 @@ f1058: ; def main
 	mov [rbp - 16], rax ; ЛошедьБ = rax
 	
 		mov rax, [rbp - 8] ; ЛошедьА
+		push rax
+
+		mov rax, [rbp - 16] ; ЛошедьБ
+		push rax
+
+		sub rsp, 16
+		mov rax, [rsp + 8]
 		test rax, rax
 		jz .DontPow
 		cmp rax, 1
 		je .DontPow
-		push rax
-
-		mov rax, [rbp - 16] ; ЛошедьБ
-		cmp rax, 1
+		cmp WORD [rsp], 1
 		je .DontPowButPop
-		push rax
-
-		fild  WORD [rsp] ; load base onto FPU stack
+		fild  WORD [rsp]      ; load base onto FPU stack
 		push 512
-		fidiv WORD [rsp] ; convert from pseudo-float
+		fidiv WORD [rsp]      ; convert from pseudo-float
 
 		fild  WORD [rsp + 16] ; load power onto FPU stack
 		fidiv WORD [rsp]      ; convert from pseudo-float
 
-		add rsp, 8  ; remove 512 from stack
-		fyl2x ; power * log_2_(base)
+		fyl2x                 ; power * log_2_(base)
 
 		; value between -1 and 1 is required by pow of 2 command
-		fist DWORD [rsp - 8] ; cast to int
-		fild DWORD [rsp - 8] ;
-		fsub      ; fit into [-1; 1]
+		fist DWORD [rsp - 8]  ; cast to int
+		fild DWORD [rsp - 8]  ;
+		fsub                  ; fit into [-1; 1]
 
-		f2xm1 ; 2^(power * log_2_(base)) - 1 = base^power
+		f2xm1                 ; 2^(power * log_2_(base)) - 1 = base^power
 
-		fld1   ; push 1
-		fadd   ; add 1 to the result
+		fld1                  ; push 1
+		fadd                  ; add 1 to the result
 
-		fild DWORD [rsp - 8] ; load casted value
-		fxch   ; exchange st(0) <-> st(1)
-		fscale ; multiply by remaining power of 2
-		fimul DWORD [const_for_pow] ; to pseudo-float
-		fistp DWORD [rsp + 8]      ; save pow value to stack
+		fild DWORD [rsp - 8]  ; load casted value
+		fxch                  ; exchange st(0) <-> st(1)
+		fscale                ; multiply by remaining power of 2
+		fimul DWORD [rsp]      ; to pseudo-float
+		fistp DWORD [rsp + 16] ; save pow value to stack
 
-		add rsp, 8
+		add rsp, 16           ; remove 512 and args from stack
 		.DontPowButPop:
 		pop rax
 		.DontPow:

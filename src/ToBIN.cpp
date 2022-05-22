@@ -284,8 +284,8 @@ static int PrintWHILE (TNode *node)
 	//Listing
     PrintA ("je .%dwhileEnd", localWhileNum);
 
-    PrintB (JE_1_BYTE (0));
-    int jeArgPos = ArrLen - 1;
+    PrintB (JE_4_BYTE (0));
+    int jeArgPos = ArrLen - 4;
 
     if (RIGHT)
         NodeToAsm (RIGHT);
@@ -298,12 +298,12 @@ static int PrintWHILE (TNode *node)
 	//Listing
     PrintA ("jmp .%dwhile", localWhileNum);
 
-    PrintB (JMP_4_BYTE (whileStartAddr - ArrLen - 5));
+    PrintB (JMP_4_BYTE (whileStartAddr - (ArrLen + 5)));
 
 	//Listing
     PrintA (".%dwhileEnd:", localWhileNum);
 
-    BinArr[jeArgPos] = (unsigned char) (ArrLen - jeArgPos - 1);
+    BinArr[jeArgPos] = (int32_t) (ArrLen - jeArgPos - 4);
 
     RmId (ASM_IDS, IdsNum - init_var_num);
 
@@ -331,9 +331,9 @@ static int PrintIF (TNode *node)
     // Listing
     PrintA ("je .%dfalse\n", localIfNum);
 
-    PrintB (JE_1_BYTE (0));
+    PrintB (JE_4_BYTE (0));
 
-    int jeArgPos = ArrLen - 1;
+    int jeArgPos = ArrLen - 4;
 
     TNode *decis = RIGHT;
 
@@ -350,7 +350,10 @@ static int PrintIF (TNode *node)
     // Listing
     PrintA (".%dfalse:\n", localIfNum);
 
-    BinArr[jeArgPos] = (unsigned char) (ArrLen - jeArgPos - 1);
+    LOG_MSG ("Printing je { from (0x%08lx) to (0x%08lx) }: arg (0x%08lx) to [0x%08lx]",
+             jeArgPos + 4, ArrLen, (int32_t) (ArrLen - (jeArgPos + 4)), jeArgPos);
+
+    *(int32_t *)(BinArr + jeArgPos) = (int32_t) (ArrLen - (jeArgPos + 4));
 
     if (decis->right)
         NodeToAsm (decis->right);
@@ -358,7 +361,10 @@ static int PrintIF (TNode *node)
     // Listing
     PrintA (".%denif:\n", localIfNum);
 
-    BinArr[jmpArgPos] = (int32_t) (ArrLen - jmpArgPos - 1);
+    LOG_MSG ("Printing jmp arg (0x%08lx) to [0x%08lx]",
+             (int32_t) (ArrLen - (jmpArgPos + 4)), jmpArgPos);
+
+    BinArr[jmpArgPos] = (int32_t) (ArrLen - (jmpArgPos + 4));
 
     return 0;
 }
@@ -400,7 +406,7 @@ static int PrintSERV (TNode *node)
         break;
 
 #define COMP_CASE(val, action)                                                  \
-    case val: Comp (#action, action##_1_BYTE (8), node); break;
+    case val: Comp (#action, action##_4_BYTE (8), node); break;
 
 static int PrintOP (TNode *node)
 {
@@ -473,7 +479,7 @@ static int Comp (const char *action, INSTRUCTION jmp_ins, TNode *node)
     // Listing
     PrintA ("%s .%dcmp\n", action, cmpNum);
 
-    // (JE/JGE/JLE/JG/JL/JNE)_1_BYTE (8) <-- 8 = len of xor + jmp
+    // (JE/JGE/JLE/JG/JL/JNE)_4_BYTE (8) <-- 8 = len of xor + jmp
     PrintB (jmp_ins);
 
     // <False>
@@ -516,59 +522,19 @@ static int PrintNeg (void)
 
 static int PrintPow (TNode *node)
 {
-///////////////////////////////////////////////
     int err = NodeToAsm (LEFT);
     if (err) return err;
 
-    PrintA ("test rax, rax");
-    PrintA ("jz .DontPow");
-
-    PrintA ("cmp rax, 1");
-    PrintA ("je .DontPow");
-
-    PUSH ("rax\n");
+    PrintB (MOV_TO_STACK_4_BYTE (-16));
 
     err = NodeToAsm (RIGHT);
     if (err) return err;
 
-    PrintA ("cmp rax, 1");
-    PrintA ("je .DontPowButPop");
+    PrintB (MOV_TO_STACK_4_BYTE (-24));
 
-    PUSH ("rax\n");
+    PrintA ("call pow");
 
-    // Load args into FPU stack
-    PrintA ("fild  WORD [rsp]            ; load base onto FPU stack");
-    PrintA ("fidiv DWORD [const_for_pow] ; convert from pseudo-float\n");
-
-    PrintA ("fild  WORD [rsp + %d]      ; load power onto FPU stack", INT_LEN);
-    PrintA ("fidiv DWORD [const_for_pow] ; convert from pseudo-float\n");
-
-    PrintA ("fyl2x ; power * log_2_(base)\n");
-
-    PrintA ("; value between -1 and 1 is required by pow of 2 command");
-    PrintA ("fist DWORD [rsp - 8] ; cast to int");
-    PrintA ("fild DWORD [rsp - 8] ;");
-    PrintA ("fsub      ; fit into [-1; 1]\n");
-
-    PrintA ("f2xm1 ; 2^(power * log_2_(base)) - 1 = base^power\n");
-
-    PrintA ("fld1   ; push 1");
-    PrintA ("fadd   ; add 1 to the result\n");
-
-    PrintA ("fild DWORD [rsp - 8] ; load casted value");
-    PrintA ("fxch   ; exchange st(0) <-> st(1)");
-    PrintA ("fscale ; multiply by remaining power of 2");
-
-    PrintA ("fimul DWORD [const_for_pow] ; to pseudo-float");
-    PrintA ("fistp DWORD [rsp + %d]      ; save pow value to stack\n", INT_LEN);
-
-    ADD_SD ("rsp", INT_LEN);
-
-    PrintA (".DontPowButPop:");
-
-    POP ("rax");
-
-    PrintA (".DontPow:");
+    PrintB (CALL_NEAR_4_BYTE (FuncArr[2].addr - ArrLen - 5));
 
     return 0;
 }
@@ -859,7 +825,7 @@ int ToBIN (TNode *root, const char *name, int func_num, FuncId *func_ids)
     PRERENDER (OUT_CODE);
 
     FuncArr[2].addr = ArrLen;
-    // PRERENDER (POW_CODE);
+    PRERENDER (POW_CODE);
 
     int err = NodeToAsm (root);
 

@@ -1,4 +1,4 @@
-prerender = open ("OUT.prerender")
+prerender = open ("POW.prerender")
 
 for line in prerender:
     for byte in range (len (line[0:-1:2])):

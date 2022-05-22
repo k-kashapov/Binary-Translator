@@ -35,113 +35,137 @@
     35 00000030 4883EC08                	sub rsp, 8 ; declared ЛошедьБ; [8; 16]
     36 00000034 488945F8                	mov [rbp - 8], rax ; ЛошедьБ = rax
     37                                  	
-    38 00000038 B800120000              	mov rax, 4608 ; const value << 9
-    39 0000003D 488945F8                	mov [rbp - 8], rax ; ЛошедьБ = rax
-    40                                  	
-    41 00000041 488B45F8                	mov rax, [rbp - 8] ; ЛошедьБ
-    42 00000045 E809000000              	call out
-    43                                  	
-    44 0000004A 488B45F8                	mov rax, [rbp - 8] ; ЛошедьБ
-    45 0000004E 4889EC                  	mov rsp, rbp
-    46 00000051 5D                      	pop rbp ; stack frame return
-    47                                  
-    48 00000052 C3                      	ret
-    49                                  	
-    50                                  
-    51                                  section .text
-    52                                  
-    53                                  ;==============================================
-    54                                  ; StdLib: out
-    55                                  ; Expects:
-    56                                  ;   rax - value
-    57                                  ; Returns: None
-    58                                  ; Corrupt:
-    59                                  ;   rdi = rsp - Will create buffer on stack
-    60                                  ;==============================================
-    61                                  
-    62                                  out:
-    63 00000053 55                          push rbp
-    64 00000054 4889E5                      mov rbp, rsp
-    65 00000057 4883EC20                    sub rsp, 32
-    66 0000005B 4889E7                      mov rdi, rsp
-    67 0000005E C6070A                      mov BYTE [rdi], 0x0A ; \n
-    68 00000061 48FFC7                      inc rdi
-    69 00000064 66C7073E3E                  mov WORD [rdi], ">>"; \n
-    70 00000069 4883C702                    add rdi, 2
-    71 0000006D C60720                      mov BYTE [rdi], 0x20 ; \n
-    72 00000070 48FFC7                      inc rdi
-    73 00000073 4883F800                    cmp rax, 0
-    74 00000077 7D09                        jge .NotNegative
-    75 00000079 C6072D                      mov BYTE [rdi], '-'
-    76 0000007C 48FFC7                      inc rdi
-    77 0000007F 48F7D8                      neg rax
-    78                                  .NotNegative:
-    79 00000082 50                          push rax
-    80 00000083 48C1E809                    shr rax, 9
-    81 00000087 4889C2                      mov rdx, rax
-    82 0000008A E84A000000                  call itoa10
-    83 0000008F 58                          pop rax
-    84 00000090 4150                        push r8
-    85 00000092 4C01C7                      add rdi, r8 ; step over the word
-    86 00000095 C6072E                      mov BYTE [rdi], 0x2E ; \n
-    87 00000098 48FFC7                      inc rdi
-    88 0000009B 4825FF010000                and rax, 511
-    89 000000A1 BBE8030000                  mov rbx, 1000
-    90 000000A6 48F7E3                      mul rbx
-    91 000000A9 48C1E809                    shr rax, 9
-    92 000000AD 4889C2                      mov rdx, rax
-    93 000000B0 E824000000                  call itoa10
-    94 000000B5 B801000000                  mov rax, 0x01 ; write
-    95 000000BA BF01000000                  mov rdi, 0x01 ; stdout
-    96 000000BF 4889E6                      mov rsi, rsp ; buffer start
-    97 000000C2 4883C608                    add rsi, 8
-    98 000000C6 4C89C2                      mov rdx, r8 ; buffer len computation
-    99 000000C9 4158                        pop r8 ; first part len
-   100 000000CB 4C01C2                      add rdx, r8
-   101 000000CE 4883C206                    add rdx, 6 ; constant part of the string
-   102 000000D2 0F05                        syscall
-   103 000000D4 4889EC                      mov rsp, rbp
-   104 000000D7 5D                          pop rbp
-   105 000000D8 C3                          ret
-   106                                  ;==============================================
-   107                                  ; StdLib: itoa
-   108                                  ;==============================================
-   109                                  
-   110                                  ;==============================================
-   111                                  ; Converts integer value into a string, base 10
-   112                                  ; Expects:
-   113                                  ;       rdx - Integer value
-   114                                  ;       rdi - Buffer to write into
-   115                                  ; Returns:
-   116                                  ;       r8  - Printed bytes num
-   117                                  ; Destr:
-   118                                  ;       rdx, r10, r9
+    38 00000038 B800000400              		mov rax, 262144 ; const value << 9
+    39 0000003D 50                      		push rax
+    40                                  
+    41 0000003E B800FE0300              		mov rax, 261632 ; const value << 9
+    42 00000043 5B                      		pop rbx
+    43                                  
+    44 00000044 48C1FB09                		sar rbx, 9 ; pseudo-float emul
+    45 00000048 4899                    		cqo
+    46                                  
+    47 0000004A 48F7FB                  		idiv rbx
+    48                                  
+    49 0000004D 488945F8                	mov [rbp - 8], rax ; ЛошедьБ = rax
+    50                                  	
+    51 00000051 488B45F8                	mov rax, [rbp - 8] ; ЛошедьБ
+    52 00000055 E809000000              	call out
+    53                                  	
+    54 0000005A 488B45F8                	mov rax, [rbp - 8] ; ЛошедьБ
+    55 0000005E 4889EC                  	mov rsp, rbp
+    56 00000061 5D                      	pop rbp ; stack frame return
+    57                                  
+    58 00000062 C3                      	ret
+    59                                  	
+    60                                  
+    61                                  section .text
+    62                                  
+    63                                  ;==============================================
+    64                                  ; StdLib: out
+    65                                  ; Expects:
+    66                                  ;   rax - value
+    67                                  ; Returns: None
+    68                                  ; Corrupt:
+    69                                  ;   rdi = rsp - Will create buffer on stack
+    70                                  ;==============================================
+    71                                  
+    72                                  out:
+    73 00000063 55                          push rbp
+    74 00000064 4889E5                      mov rbp, rsp
+    75 00000067 4883EC20                    sub rsp, 32
+    76 0000006B 4889E7                      mov rdi, rsp
+    77 0000006E C6070A                      mov BYTE [rdi], 0x0A ; \n
+    78 00000071 48FFC7                      inc rdi
+    79 00000074 66C7073E3E                  mov WORD [rdi], ">>"; \n
+    80 00000079 4883C702                    add rdi, 2
+    81 0000007D C60720                      mov BYTE [rdi], 0x20 ; \n
+    82 00000080 48FFC7                      inc rdi
+    83 00000083 4883F800                    cmp rax, 0
+    84 00000087 7D09                        jge .NotNegative
+    85 00000089 C6072D                      mov BYTE [rdi], '-'
+    86 0000008C 48FFC7                      inc rdi
+    87 0000008F 48F7D8                      neg rax
+    88                                  .NotNegative:
+    89 00000092 50                          push rax
+    90 00000093 48C1E809                    shr rax, 9
+    91 00000097 4889C2                      mov rdx, rax
+    92 0000009A 41BA0A000000                mov r10, 10
+    93 000000A0 E84F000000                  call CntBytes
+    94 000000A5 E86B000000                  call itoa10
+    95 000000AA 58                          pop rax
+    96 000000AB 4C01C7                      add rdi, r8 ; step over the word
+    97 000000AE C6072E                      mov BYTE [rdi], 0x2E ; \n
+    98 000000B1 48FFC7                      inc rdi
+    99 000000B4 4825FF010000                and rax, 511
+   100 000000BA BBE8030000                  mov rbx, 1000
+   101 000000BF 48F7E3                      mul rbx
+   102 000000C2 48C1E809                    shr rax, 9
+   103 000000C6 4889C2                      mov rdx, rax
+   104 000000C9 66C7073030                  mov WORD [rdi], 0x30303030
+   104          ******************       warning: word data exceeds bounds [-w+number-overflow]
+   105 000000CE 4883C702                    add rdi, 2
+   106 000000D2 E83E000000                  call itoa10
+   107 000000D7 B801000000                  mov rax, 0x01 ; write
+   108 000000DC 4889FA                      mov rdx, rdi ; buffer len
+   109 000000DF 4829E2                      sub rdx, rsp ; buffer len
+   110 000000E2 48FFC2                      inc rdx      ; buffer len
+   111 000000E5 BF01000000                  mov rdi, 0x01 ; stdout
+   112 000000EA 4889E6                      mov rsi, rsp ; buffer start
+   113 000000ED 0F05                        syscall
+   114 000000EF 4889EC                      mov rsp, rbp
+   115 000000F2 5D                          pop rbp
+   116 000000F3 C3                          ret
+   117                                  ;==============================================
+   118                                  ; StdLib: itoa
    119                                  ;==============================================
-   120                                  itoa10:
-   121 000000D9 4D31C0                  xor r8, r8		; r8 = bytes counter
-   122 000000DC 4989D1                  mov r9, rdx 		; from now on, value is stored in r9
-   123 000000DF 4889D0                  mov rax, rdx		; save value to rax
-   124 000000E2 41BA0A000000            mov r10, 10
-   125                                  .CntBytes:              	; skips, bytes that are required to save the value
-   126 000000E8 4831D2                  xor rdx, rdx		; reset remaining
-   127 000000EB 49F7F2                  div r10            ; rax = rax / 10; rdx = rax % 10
-   128 000000EE 48FFC7                  inc rdi
-   129 000000F1 49FFC0                  inc r8
-   130 000000F4 4883F800                cmp rax, 0000h
-   131 000000F8 77EE                    ja .CntBytes
-   132 000000FA 4C89C8                  mov rax, r9           	; reset value
-   133 000000FD C60700                  mov byte [rdi], 00
-   134 00000100 48FFCF                  dec rdi
-   135                                  .Print:
-   136 00000103 4831D2                  xor rdx, rdx
-   137 00000106 49F7F2                  div r10                ; rax = rax / 10; rdx = rax % 10
-   138 00000109 80C230                  add dl, '0'           	; to ASCII
-   139 0000010C 8817                    mov [rdi], dl
-   140 0000010E 48FFCF                  dec rdi
-   141 00000111 4883F800                cmp rax, 00h
-   142 00000115 77EC                    ja .Print
-   143                                  ; rdi = &buffer - 1
-   144 00000117 48FFC7                  inc rdi ; rdi = &buffer
-   145 0000011A C3                      ret
-   146                                  
-   147                                  
+   120                                  
+   121                                  ;==============================================
+   122                                  ; Count bytes
+   123                                  ; Counts the amount of bytes needed to write down an int
+   124                                  ; Expects:
+   125                                  ;      rax - value
+   126                                  ;      r10 = 10
+   127                                  ;      rdi - buffer
+   128                                  ;==============================================
+   129                                  
+   130                                  CntBytes:              ; skips, bytes that are required to save the value
+   131 000000F4 4D31C0                  xor r8, r8         ; reset bytecount
+   132 000000F7 50                      push rax
+   133 000000F8 4831D2                  .loop:xor rdx, rdx		; reset remaining
+   134 000000FB 49F7F2                  div r10            ; rax = rax / 10; rdx = rax % 10
+   135 000000FE 48FFC7                  inc rdi
+   136 00000101 49FFC0                  inc r8
+   137 00000104 4883F800                cmp rax, 0
+   138 00000108 77EE                    ja .loop
+   139 0000010A 4C89C8                  mov rax, r9           	; reset value
+   140 0000010D C60700                  mov byte [rdi], 00
+   141 00000110 48FFCF                  dec rdi
+   142 00000113 58                      pop rax
+   143 00000114 C3                      ret
+   144                                  ;==============================================
+   145                                  ; Converts integer value into a string, base 10
+   146                                  ; Expects:
+   147                                  ;       r10 = 10
+   148                                  ;       rdx - Integer value
+   149                                  ;       rdi - Buffer to write into
+   150                                  ; Returns:
+   151                                  ;       r8  - Printed bytes num
+   152                                  ; Destr:
+   153                                  ;       rdx, r10, r9
+   154                                  ;==============================================
+   155                                  itoa10:
+   156 00000115 4D31C0                  xor r8, r8		    ; r8 = bytes counter
+   157                                  .Print:
+   158 00000118 4831D2                  xor rdx, rdx
+   159 0000011B 49F7F2                  div r10                ; rax = rax / 10; rdx = rax % 10
+   160 0000011E 80C230                  add dl, '0'           	; to ASCII
+   161 00000121 8817                    mov [rdi], dl
+   162 00000123 48FFCF                  dec rdi
+   163 00000126 49FFC0                  inc r8
+   164 00000129 4883F800                cmp rax, 00h
+   165 0000012D 77E9                    ja .Print
+   166                                  ; rdi = &buffer - 1
+   167 0000012F 48FFC7                  inc rdi ; rdi = &buffer
+   168 00000132 C3                      ret
+   169                                  
+   170                                  

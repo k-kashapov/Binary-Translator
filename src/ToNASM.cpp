@@ -369,54 +369,53 @@ static int PrintPow (TNode *node)
     int err = NodeToAsm (LEFT);
     if (err) return err;
 
+    PUSH ("rax\n");
+
+    err = NodeToAsm (RIGHT);
+    if (err) return err;
+
+    PUSH ("rax\n");
+
+    MOV_SS ("rax", "[rsp + 8]");
     PrintA ("test rax, rax");
     PrintA ("jz .DontPow");
 
     PrintA ("cmp rax, 1");
     PrintA ("je .DontPow");
 
-    PUSH ("rax\n");
-
-    err = NodeToAsm (RIGHT);
-    if (err) return err;
-
-    PrintA ("cmp rax, 1");
+    PrintA ("cmp WORD [rsp], 1");
     PrintA ("je .DontPowButPop");
 
-    PUSH ("rax\n");
-
     // Load args into FPU stack
-    PrintA ("fild  WORD [rsp] ; load base onto FPU stack");
+    PrintA ("fild  WORD [rsp]      ; load base onto FPU stack");
 
     PrintA ("push 512");
 
-    PrintA ("fidiv WORD [rsp] ; convert from pseudo-float\n");
+    PrintA ("fidiv WORD [rsp]      ; convert from pseudo-float\n");
 
     PrintA ("fild  WORD [rsp + 16] ; load power onto FPU stack");
     PrintA ("fidiv WORD [rsp]      ; convert from pseudo-float\n");
 
-    PrintA ("add rsp, 8  ; remove 512 from stack");
-
-    PrintA ("fyl2x ; power * log_2_(base)\n");
+    PrintA ("fyl2x                 ; power * log_2_(base)\n");
 
     PrintA ("; value between -1 and 1 is required by pow of 2 command");
-    PrintA ("fist DWORD [rsp - 8] ; cast to int");
-    PrintA ("fild DWORD [rsp - 8] ;");
-    PrintA ("fsub      ; fit into [-1; 1]\n");
+    PrintA ("fist DWORD [rsp - 8]  ; cast to int");
+    PrintA ("fild DWORD [rsp - 8]  ;");
+    PrintA ("fsub                  ; fit into [-1; 1]\n");
 
-    PrintA ("f2xm1 ; 2^(power * log_2_(base)) - 1 = base^power\n");
+    PrintA ("f2xm1                 ; 2^(power * log_2_(base)) - 1 = base^power\n");
 
-    PrintA ("fld1   ; push 1");
-    PrintA ("fadd   ; add 1 to the result\n");
+    PrintA ("fld1                  ; push 1");
+    PrintA ("fadd                  ; add 1 to the result\n");
 
-    PrintA ("fild DWORD [rsp - 8] ; load casted value");
-    PrintA ("fxch   ; exchange st(0) <-> st(1)");
-    PrintA ("fscale ; multiply by remaining power of 2");
+    PrintA ("fild DWORD [rsp - 8]  ; load casted value");
+    PrintA ("fxch                  ; exchange st(0) <-> st(1)");
+    PrintA ("fscale                ; multiply by remaining power of 2");
 
-    PrintA ("fimul DWORD [const_for_pow] ; to pseudo-float");
-    PrintA ("fistp DWORD [rsp + %d]      ; save pow value to stack\n", INT_LEN);
+    PrintA ("fimul DWORD [rsp]      ; to pseudo-float");
+    PrintA ("fistp DWORD [rsp + 16] ; save pow value to stack\n", INT_LEN);
 
-    ADD_SD ("rsp", INT_LEN);
+    PrintA ("add rsp, 16           ; remove 512 and args from stack");
 
     PrintA (".DontPowButPop:");
 

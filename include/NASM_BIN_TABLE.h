@@ -46,17 +46,19 @@
 
 #define TEST_RAX_RAX               (INSTRUCTION { 0xC08548,    3,       0,    0 })
 
-#define JE_1_BYTE(arg_)            (INSTRUCTION { 0x74,        1,       1, arg_ })
-#define JGE_1_BYTE(arg_)           (INSTRUCTION { 0x7D,        1,       1, arg_ })
-#define JLE_1_BYTE(arg_)           (INSTRUCTION { 0x7E,        1,       1, arg_ })
-#define JG_1_BYTE(arg_)            (INSTRUCTION { 0x7F,        1,       1, arg_ })
-#define JL_1_BYTE(arg_)            (INSTRUCTION { 0x7C,        1,       1, arg_ })
-#define JNE_1_BYTE(arg_)           (INSTRUCTION { 0x75,        1,       1, arg_ })
+#define JE_4_BYTE(arg_)            (INSTRUCTION { 0x840F,      2,       4, arg_ })
+#define JGE_4_BYTE(arg_)           (INSTRUCTION { 0x8D0F,      2,       4, arg_ })
+#define JLE_4_BYTE(arg_)           (INSTRUCTION { 0x8E0F,      2,       4, arg_ })
+#define JG_4_BYTE(arg_)            (INSTRUCTION { 0x8F0F,      2,       4, arg_ })
+#define JL_4_BYTE(arg_)            (INSTRUCTION { 0x8C0F,      2,       4, arg_ })
+#define JNE_4_BYTE(arg_)           (INSTRUCTION { 0x850F,      2,       4, arg_ })
 
 #define JMP_4_BYTE(arg_)           (INSTRUCTION { 0xE9,        1,       4, arg_ })
 
 #define PUSH_RAX                   (INSTRUCTION { 0x50,        1,       0,    0 })
 #define POP_RBX                    (INSTRUCTION { 0x5B,        1,       0,    0 })
+
+#define POP_RAX                    (INSTRUCTION { 0x58,        1,       0,    0 })
 
 #define ADD_RAX_RBX                (INSTRUCTION { 0xD80148,    3,       0,    0 })
 #define SUB_RAX_RBX                (INSTRUCTION { 0xD82948,    3,       0,    0 })
