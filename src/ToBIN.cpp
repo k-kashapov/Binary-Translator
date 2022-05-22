@@ -248,7 +248,7 @@ static int PrintOUT (TNode *node)
     // Listing
     PrintA ("call out");
 
-    PrintB (CALL_NEAR_4_BYTE (0xD0DE));
+    PrintB (CALL_NEAR_4_BYTE (FuncArr[1].addr - ArrLen - 5));
 
     return 0;
 }
@@ -856,7 +856,7 @@ int ToBIN (TNode *root, const char *name, int func_num, FuncId *func_ids)
     PRERENDER (IN_CODE);
 
     FuncArr[1].addr = ArrLen;
-    // PRERENDER (OUT_CODE);
+    PRERENDER (OUT_CODE);
 
     FuncArr[2].addr = ArrLen;
     // PRERENDER (POW_CODE);

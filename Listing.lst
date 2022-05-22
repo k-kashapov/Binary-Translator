@@ -4,27 +4,27 @@
 00000017:		POP_EVERYTING
 00000021:		ret
 00000022:		IN_CODE
-00000081:		f1058: ; def main
-00000081:		push rbp ; create stack frame
-00000082:		mov rbp, rsp
+00000081:		OUT_CODE
+00000149:		f1058: ; def main
+00000149:		push rbp ; create stack frame
+0000014a:		mov rbp, rsp
 
-00000085:		sub rsp, 0 ; jump over parameters
+0000014d:		sub rsp, 0 ; jump over parameters
 
-0000008c:		mov rax, 0 ; const value << 9
-00000091:		sub rsp, 8 ; declared ЛошедьБ; [8; 16]
-00000098:		mov [rbp - 8], rax ; ЛошедьБ = rax
-0000009f:		
-0000009f:		mov rax, 0 ; const value << 9
-000000a4:		sub rsp, 8 ; declared ЛошедьФ; [16; 24]
-000000ab:		mov [rbp - 16], rax ; ЛошедьФ = rax
-000000b2:		
-000000b2:		call IN
-000000b7:		mov [rbp - 8], rax ; ЛошедьБ = rax
-000000be:		
-000000be:		mov rax, [rbp - 8] ; ЛошедьБ
-000000c5:		mov rsp, rbp
-000000c8:		pop rbp ; stack frame return
+00000154:		mov rax, 0 ; const value << 9
+00000159:		sub rsp, 8 ; declared ЛошедьБ; [8; 16]
+00000160:		mov [rbp - 8], rax ; ЛошедьБ = rax
+00000167:		
+00000167:		mov rax, 4608 ; const value << 9
+0000016c:		mov [rbp - 8], rax ; ЛошедьБ = rax
+00000173:		
+00000173:		mov rax, [rbp - 8] ; ЛошедьБ
+0000017a:		call out
+0000017f:		
+0000017f:		mov rax, [rbp - 8] ; ЛошедьБ
+00000186:		mov rsp, rbp
+00000189:		pop rbp ; stack frame return
 
-000000c9:		ret
-000000ca:		
-000000ca:		
+0000018a:		ret
+0000018b:		
+0000018b:		
