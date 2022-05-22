@@ -230,45 +230,9 @@ static int PrintIN (TNode *node)
 
     IN_USED = 1;
 
-    // Listing
-    PrintA ("xor rdi, rdi");
-
-    PrintB (XOR_RDI_RDI);
-
-    // Listing
-    MOV_SS ("rsi", "inputbuf ; buffer for inputted value\n");
-
-    PrintB (LEA_RSI_4_BYTE (0xC0DEDEAD));
-
-    // Listing
-    MOV_SD ("rdx", 15);
-
-    PrintB (MOV_RDX_4_BYTE (15));
-
-    // Listing
-    PrintA ("xor rax, rax");
-
-    PrintB (XOR_RAX_RAX);
-
-    // Listing
-    PrintA ("syscall");
-
-    PrintB (SYSCALL);
-
-    // Listing
-    MOV_SS ("rcx", "rax");
-
-    PrintB (MOV_RCX_RAX);
-
-    // Listing
-    PrintA ("call atoi");
+    PrintA ("call IN");
 
     PrintB (CALL_NEAR_4_BYTE (FuncArr[0].addr - ArrLen - 5));
-
-    // Listing
-    FLOAT_L ("rax");
-
-    PrintB (SHL_RAX_1_BYTE (NUMS_AFTER_POINT));
 
     return 0;
 }

@@ -1,0 +1,30 @@
+00000000:		const_for_pow: dq 512
+00000008:		PUSH_EVERYTING
+00000012:		call main
+00000017:		POP_EVERYTING
+00000021:		ret
+00000022:		IN_CODE
+00000081:		f1058: ; def main
+00000081:		push rbp ; create stack frame
+00000082:		mov rbp, rsp
+
+00000085:		sub rsp, 0 ; jump over parameters
+
+0000008c:		mov rax, 0 ; const value << 9
+00000091:		sub rsp, 8 ; declared ЛошедьБ; [8; 16]
+00000098:		mov [rbp - 8], rax ; ЛошедьБ = rax
+0000009f:		
+0000009f:		mov rax, 0 ; const value << 9
+000000a4:		sub rsp, 8 ; declared ЛошедьФ; [16; 24]
+000000ab:		mov [rbp - 16], rax ; ЛошедьФ = rax
+000000b2:		
+000000b2:		call IN
+000000b7:		mov [rbp - 8], rax ; ЛошедьБ = rax
+000000be:		
+000000be:		mov rax, [rbp - 8] ; ЛошедьБ
+000000c5:		mov rsp, rbp
+000000c8:		pop rbp ; stack frame return
+
+000000c9:		ret
+000000ca:		
+000000ca:		

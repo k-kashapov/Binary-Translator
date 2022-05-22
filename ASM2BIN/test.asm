@@ -109,6 +109,8 @@ imul rbx
 
 sar rbx, 9
 
+mov rsi, rsp
+
 .whileEnd:
 
 section .bss

@@ -13,9 +13,13 @@
 //      ^   <---ARG--->
 //     RIP
 
+// If jumping backward:
 // ARG = offset Destination - (RIP + 1 + 4)
 //                                   ^   ^
 //                           OPCODE--^   ^--ARG
+
+// Forward:
+// ARG = offset Destination - (RIP + 4)
 
 #define CALL_NEAR_4_BYTE(arg_)     (INSTRUCTION { 0xE8,        1,       4, arg_ })
 
@@ -80,3 +84,5 @@
 #define CQO_1_BYTE                 (INSTRUCTION { 0x9948,      2,       0,    0 })
 #define IMUL_RBX                   (INSTRUCTION { 0xEBF748,    3,       0,    0 })
 #define IDIV_RBX                   (INSTRUCTION { 0xFBF748,    3,       0,    0 })
+
+#define MOV_RSI_RSP                (INSTRUCTION { 0xE68948,    3,       0,    0 })
