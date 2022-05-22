@@ -1,4 +1,4 @@
-//      MNEMO                                    OPCODE     LEN  ARG_LEN   ARG
+//      MNEMO                                     OPCODE     LEN  ARG_LEN   ARG
 #define SUB_RSP_1_BYTE(arg_)       (INSTRUCTION { 0xEC8348,    3,       1, arg_ })
 #define SUB_RSP_4_BYTE(arg_)       (INSTRUCTION { 0xEC8148,    3,       4, arg_ })
 #define ADD_RSP_1_BYTE(arg_)       (INSTRUCTION { 0xC48348,    3,       1, arg_ })
@@ -35,6 +35,8 @@
 #define SHL_RAX_1_BYTE(arg_)       (INSTRUCTION { 0xE0C148,    3,       1, arg_ })
 #define SAR_RAX_1_BYTE(arg_)       (INSTRUCTION { 0xF8C148,    3,       1, arg_ })
 
+#define SAR_RBX_1_BYTE(arg_)       (INSTRUCTION { 0xFBC148,    3,       1, arg_ })
+
 #define MOV_R12_RSP                (INSTRUCTION { 0xE48949,    3,       0,    0 })
 #define MOV_RSP_R12                (INSTRUCTION { 0xE4894C,    3,       0,    0 })
 
@@ -62,15 +64,19 @@
 #define MOV_RAX_4_BYTE(arg_)       (INSTRUCTION { 0xB8,        1,       4, arg_ })
 
 // mov [rbp + arg], rax
-#define MOV_RBP_3_BYTE_RAX(arg_)   (INSTRUCTION { 0x858948,    3,       3, arg_ })
+#define MOV_RBP_4_BYTE_RAX(arg_)   (INSTRUCTION { 0x858948,    3,       4, arg_ })
 
 // mov rax, [rsp + arg]
 #define MOV_RAX_STACK_2_BYTE(arg_) (INSTRUCTION { 0x24848B48,  4,       2, arg_ })
 
 // mov rax, [rbp + arg]
-#define MOV_RAX_RBP_3_BYTE(arg_)   (INSTRUCTION { 0x858B48,    3,       3, arg_ })
+#define MOV_RAX_RBP_4_BYTE(arg_)   (INSTRUCTION { 0x858B48,    3,       4, arg_ })
 
 #define NOT_RAX                    (INSTRUCTION { 0xD0F748,    3,       0,    0 })
 
 #define MOV_RBX_RAX                (INSTRUCTION { 0xC38948,    3,       0,    0 })
 #define CMP_RBX_RAX                (INSTRUCTION { 0xC33948,    3,       0,    0 })
+
+#define CQO_1_BYTE                 (INSTRUCTION { 0x9948,      2,       0,    0 })
+#define IMUL_RBX                   (INSTRUCTION { 0xEBF748,    3,       0,    0 })
+#define IDIV_RBX                   (INSTRUCTION { 0xFBF748,    3,       0,    0 })

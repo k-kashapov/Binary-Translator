@@ -1,7 +1,22 @@
 
 section	.text
 	global _start       
-_start:                
+_start:   
+
+push rbx
+push rbp   ; push everything
+push r12   ; push everything
+push r13   ; push everything
+push r14   ; push everything
+push r15   ; push everything
+
+pop rbx   ; restore initial regs state\n"
+pop rbp   ; restore initial regs state\n"
+pop r12   ; restore initial regs state\n"
+pop r13   ; restore initial regs state\n"
+pop r14   ; restore initial regs state\n"
+pop r15   ; restore initial regs state
+             
     label:
 
 sub rsp, 8
@@ -86,6 +101,13 @@ push rax
 pop rbx
 add rax, rbx
 sub rax, rbx
+
+cqo
+idiv rbx
+
+imul rbx
+
+sar rbx, 9
 
 .whileEnd:
 

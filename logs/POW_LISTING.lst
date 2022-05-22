@@ -1,0 +1,278 @@
+     1                                  global _start
+     2                                  section .data
+     3                                  
+     4 00000000 00020000                const_for_pow: dd 0x200        ; memory for float computations
+     5                                  section .text
+     6                                  
+     7                                  _start:
+     8 00000000 53                      	push rbx   ; push everything
+     9 00000001 55                      	push rbp   ; push everything
+    10 00000002 4154                    	push r12   ; push everything
+    11 00000004 4155                    	push r13   ; push everything
+    12 00000006 4156                    	push r14   ; push everything
+    13 00000008 4157                    	push r15   ; push everything
+    14                                  
+    15 0000000A E814000000              	call f1058 ; call main
+    16                                  
+    17 0000000F 5B                      	pop rbx   ; restore initial regs state
+    18 00000010 5D                      	pop rbp   ; restore initial regs state
+    19 00000011 415C                    	pop r12   ; restore initial regs state
+    20 00000013 415D                    	pop r13   ; restore initial regs state
+    21 00000015 415E                    	pop r14   ; restore initial regs state
+    22 00000017 415F                    	pop r15   ; restore initial regs state
+    23                                  
+    24 00000019 4889C7                  	mov rdi, rax
+    25 0000001C B83C000000              	mov rax, 0x3C
+    26 00000021 0F05                    	syscall
+    27                                  
+    28                                  f1058: ; def main
+    29 00000023 55                      	push rbp ; create stack frame
+    30 00000024 4889E5                  	mov rbp, rsp
+    31                                  
+    32 00000027 4883EC00                	sub rsp, 0 ; jump over parameters
+    33                                  
+    34 0000002B B800000000              	mov rax, 0 ; const value << 9
+    35 00000030 4883EC08                	sub rsp, 8 ; declared ЛошедьА; [8; 16]
+    36 00000034 488945F8                	mov [rbp - 8], rax ; ЛошедьА = rax
+    37                                  	
+    38 00000038 B800000000              	mov rax, 0 ; const value << 9
+    39 0000003D 4883EC08                	sub rsp, 8 ; declared ЛошедьБ; [16; 24]
+    40 00000041 488945F0                	mov [rbp - 16], rax ; ЛошедьБ = rax
+    41                                  	
+    42 00000045 B800000000              	mov rax, 0 ; const value << 9
+    43 0000004A 4883EC08                	sub rsp, 8 ; declared ЛошедьВ; [24; 32]
+    44 0000004E 488945E8                	mov [rbp - 24], rax ; ЛошедьВ = rax
+    45                                  	
+    46 00000052 4831FF                  	xor rdi, rdi
+    47 00000055 48BE-                   	mov rsi, inputbuf ; buffer for inputted value
+    47 00000057 [0000000000000000] 
+    48                                  
+    49 0000005F BA0F000000              	mov rdx, 15
+    50 00000064 4831C0                  	xor rax, rax
+    51 00000067 0F05                    	syscall
+    52 00000069 4889C1                  	mov rcx, rax
+    53 0000006C E893010000              	call atoi
+    54 00000071 48C1E009                	sal rax, 9 ; pseudo-float emul
+    55 00000075 488945F8                	mov [rbp - 8], rax ; ЛошедьА = rax
+    56                                  	
+    57 00000079 4831FF                  	xor rdi, rdi
+    58 0000007C 48BE-                   	mov rsi, inputbuf ; buffer for inputted value
+    58 0000007E [0000000000000000] 
+    59                                  
+    60 00000086 BA0F000000              	mov rdx, 15
+    61 0000008B 4831C0                  	xor rax, rax
+    62 0000008E 0F05                    	syscall
+    63 00000090 4889C1                  	mov rcx, rax
+    64 00000093 E86C010000              	call atoi
+    65 00000098 48C1E009                	sal rax, 9 ; pseudo-float emul
+    66 0000009C 488945F0                	mov [rbp - 16], rax ; ЛошедьБ = rax
+    67                                  	
+    68 000000A0 B800040000              		mov rax, 1024 ; const value << 9
+    69 000000A5 50                      		push rax
+    70                                  
+    71 000000A6 488B45F8                			mov rax, [rbp - 8] ; ЛошедьА
+    72 000000AA 4885C0                  			test rax, rax
+    73 000000AD 7452                    			jz .DontPow
+    74 000000AF 4883F801                			cmp rax, 1
+    75 000000B3 744C                    			je .DontPow
+    76 000000B5 50                      			push rax
+    77                                  
+    78 000000B6 B800020000              			mov rax, 512 ; const value << 9
+    79 000000BB 4883F801                			cmp rax, 1
+    80 000000BF 743F                    			je .DontPowButPop
+    81 000000C1 50                      			push rax
+    82                                  
+    83 000000C2 DF0424                  			fild  WORD [rsp]            ; load base onto FPU stack
+    84 000000C5 DA3425[00000000]        			fidiv DWORD [const_for_pow] ; convert from pseudo-float
+    85                                  
+    86 000000CC DF442408                			fild  WORD [rsp + 8]      ; load power onto FPU stack
+    87 000000D0 DA3425[00000000]        			fidiv DWORD [const_for_pow] ; convert from pseudo-float
+    88                                  
+    89 000000D7 D9F1                    			fyl2x ; power * log_2_(base)
+    90                                  
+    91                                  			; value between -1 and 1 is required by pow of 2 command
+    92 000000D9 DB5424F8                			fist DWORD [rsp - 8] ; cast to int
+    93 000000DD DB4424F8                			fild DWORD [rsp - 8] ;
+    94 000000E1 DEE9                    			fsub      ; fit into [-1; 1]
+    95                                  
+    96 000000E3 D9F0                    			f2xm1 ; 2^(power * log_2_(base)) - 1 = base^power
+    97                                  
+    98 000000E5 D9E8                    			fld1   ; push 1
+    99 000000E7 DEC1                    			fadd   ; add 1 to the result
+   100                                  
+   101 000000E9 DB4424F8                			fild DWORD [rsp - 8] ; load casted value
+   102 000000ED D9C9                    			fxch   ; exchange st(0) <-> st(1)
+   103 000000EF D9FD                    			fscale ; multiply by remaining power of 2
+   104 000000F1 DA0C25[00000000]        			fimul DWORD [const_for_pow] ; to pseudo-float
+   105 000000F8 DB5C2408                			fistp DWORD [rsp + 8]      ; save pow value to stack
+   106                                  
+   107 000000FC 4883C408                			add rsp, 8
+   108                                  			.DontPowButPop:
+   109 00000100 58                      			pop rax
+   110                                  			.DontPow:
+   111 00000101 5B                      		pop rbx
+   112                                  
+   113 00000102 48C1FB09                		sar rbx, 9 ; pseudo-float emul
+   114 00000106 4899                    		cqo
+   115                                  
+   116 00000108 48F7FB                  		idiv rbx
+   117                                  
+   118 0000010B 488945E8                	mov [rbp - 24], rax ; ЛошедьВ = rax
+   119                                  	
+   120 0000010F 488B45E8                	mov rax, [rbp - 24] ; ЛошедьВ
+   121 00000113 E80A000000              	call out
+   122                                  	
+   123 00000118 B800000000              	mov rax, 0 ; const value << 9
+   124 0000011D 4889EC                  	mov rsp, rbp
+   125 00000120 5D                      	pop rbp ; stack frame return
+   126                                  
+   127 00000121 C3                      	ret
+   128                                  	
+   129                                  
+   130                                  section .data
+   131                                  
+   132 00000004 0A3E3E20                outArr: db 10, ">> "
+   133 00000008 000000000000000000-     outBig: dq 0, 0
+   133 00000011 00000000000000     
+   134 00000018 2E                      outDot: db '.'
+   135 00000019 000000000000000000-     outLow: dq 0, 0 
+   135 00000022 00000000000000     
+   136                                  
+   137                                  section .text
+   138                                  
+   139                                  ;==============================================
+   140                                  ; StdLib: out
+   141                                  ; Expects:
+   142                                  ;   outbuffer
+   143                                  ;   rax - value
+   144                                  ; Returns: None
+   145                                  ;==============================================
+   146                                  
+   147                                  out:
+   148 00000122 48BF-                       mov rdi, outBig
+   148 00000124 [0800000000000000] 
+   149 0000012C 4883F800                    cmp rax, 0
+   150 00000130 7D0E                        jge .NotNegative
+   151 00000132 C60425[08000000]2D          mov BYTE [outBig], '-'
+   152 0000013A 48FFC7                      inc rdi
+   153 0000013D 48F7D8                      neg rax
+   154                                  .NotNegative:
+   155 00000140 50                          push rax
+   156 00000141 48C1E809                    shr rax, 9
+   157 00000145 4889C2                      mov rdx, rax
+   158 00000148 E875000000                  call itoa10
+   159 0000014D B801000000                  mov rax, 0x01
+   160 00000152 BF01000000                  mov rdi, 0x01
+   161 00000157 48BE-                       mov rsi, outArr
+   161 00000159 [0400000000000000] 
+   162 00000161 4C89C2                      mov rdx, r8
+   163 00000164 4883C205                    add rdx, 5
+   164 00000168 0F05                        syscall
+   165 0000016A 58                          pop rax
+   166 0000016B 4825FF010000                and rax, 511
+   167 00000171 BBE8030000                  mov rbx, 1000
+   168 00000176 48F7E3                      mul rbx
+   169 00000179 48C1E809                    shr rax, 9
+   170 0000017D 4889C2                      mov rdx, rax
+   171 00000180 48BF-                       mov rdi, outLow
+   171 00000182 [1900000000000000] 
+   172 0000018A E833000000                  call itoa10
+   173 0000018F B801000000                  mov rax, 0x01
+   174 00000194 BF01000000                  mov rdi, 0x01
+   175 00000199 48BE-                       mov rsi, outDot
+   175 0000019B [1800000000000000] 
+   176 000001A3 4C89C2                      mov rdx, r8
+   177 000001A6 4883C201                    add rdx, 1
+   178 000001AA 0F05                        syscall
+   179 000001AC C3                          ret
+   180                                  ;==============================================
+   181                                  ; StdLib: itoa
+   182                                  ;==============================================
+   183                                  
+   184                                  CountBytes:
+   185 000001AD 4831C0                  	xor rax, rax
+   186 000001B0 4889D0                          mov rax, rdx	; save value in r10 to count symbols in it
+   187 000001B3 30ED                            xor ch, ch
+   188                                  .Loop:
+   189 000001B5 FEC5                            inc ch  	; bytes counter
+   190 000001B7 48D3E8                          shr rax, cl     ; rax >> cl
+   191 000001BA 75F9                            jnz .Loop
+   192 000001BC 4831C0                  	xor rax, rax
+   193 000001BF 88E8                            mov al, ch
+   194 000001C1 C3                      ret
+   195                                  ;==============================================
+   196                                  ; Converts integer value into a string, base 10
+   197                                  ; Expects:
+   198                                  ;       rdx - Integer value
+   199                                  ;       rdi - Buffer to write into
+   200                                  ; Returns:
+   201                                  ;       r8  - Printed bytes num
+   202                                  ; Destr:
+   203                                  ;       rdx, r10, r9
+   204                                  ;==============================================
+   205                                  itoa10:
+   206 000001C2 4D31C0                  xor r8, r8		; r8 = bytes counter
+   207 000001C5 4989D1                  mov r9, rdx 		; from now on, value is stored in r9
+   208 000001C8 4889D0                  mov rax, rdx		; save value to rax
+   209 000001CB 41BA0A000000            mov r10, 10
+   210                                  .CntBytes:              	; skips, bytes that are required to save the value
+   211 000001D1 4831D2                  xor rdx, rdx		; reset remaining
+   212 000001D4 49F7F2                  div r10            ; rax = rax / 10; rdx = rax % 10
+   213 000001D7 48FFC7                  inc rdi
+   214 000001DA 49FFC0                  inc r8
+   215 000001DD 4883F800                cmp rax, 0000h
+   216 000001E1 77EE                    ja .CntBytes
+   217 000001E3 4C89C8                  mov rax, r9           	; reset value
+   218 000001E6 C60700                  mov byte [rdi], 00
+   219 000001E9 48FFCF                  dec rdi
+   220                                  .Print:
+   221 000001EC 4831D2                  xor rdx, rdx
+   222 000001EF 49F7F2                  div r10                ; rax = rax / 10; rdx = rax % 10
+   223 000001F2 80C230                  add dl, '0'           	; to ASCII
+   224 000001F5 8817                    mov [rdi], dl
+   225 000001F7 48FFCF                  dec rdi
+   226 000001FA 4883F800                cmp rax, 00h
+   227 000001FE 77EC                    ja .Print
+   228                                  ; rdi = &buffer - 1
+   229 00000200 48FFC7                  inc rdi ; rdi = &buffer
+   230 00000203 C3                      ret
+   231                                  
+   232                                  
+   233                                  section .bss
+   234                                  
+   235 00000000 <res 00000010>          inputbuf: resq 2
+   236                                  
+   237                                  section .text
+   238                                  
+   239                                  ;==============================================
+   240                                  ; StdLib: atoi
+   241                                  ; Expects:
+   242                                  ;     rsi - inputbuf
+   243                                  ;     rcx - len of input
+   244                                  ; Returns:
+   245                                  ;     rax - result int
+   246                                  ;==============================================
+   247                                  atoi:
+   248 00000204 4831C0                      xor rax, rax
+   249 00000207 4831DB                      xor rbx, rbx
+   250 0000020A 48FFC9                      dec rcx
+   251 0000020D 7421                        jz .End
+   252 0000020F 803E2D                      cmp BYTE [rsi], '-'
+   253 00000212 7506                        jne .Loop
+   254 00000214 48FFC6                      inc rsi
+   255 00000217 48FFC9                      dec rcx
+   256                                  .Loop:
+   257 0000021A 8A1E                        mov bl, [rsi]
+   258 0000021C 4883EB30                    sub rbx, '0'
+   259 00000220 48FFC6                      inc rsi
+   260 00000223 BA0A000000                  mov rdx, 10
+   261 00000228 48F7E2                      mul rdx
+   262 0000022B 4801D8                      add rax, rbx
+   263 0000022E E2EA                        loop .Loop
+   264 00000230 803C25[00000000]2D      .End:    cmp BYTE [inputbuf], '-'
+   265 00000238 7503                        jne .Ret
+   266 0000023A 48F7D8                      neg rax
+   267                                  .Ret:
+   268 0000023D C3                          ret
+   269                                  
+   270                                  

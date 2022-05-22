@@ -35,7 +35,7 @@ const static int INT_LEN  = 8;   // length of single int
 static int  PrintB        (INSTRUCTION ins);
 static int  Bflush        (FILE *flushTO);
 static int  AddVar        (char isConst, int len, TNode *var);
-static int  Comp          (const char *action, TNode *node);
+static int  Comp          (const char *action, INSTRUCTION jmp_ins, TNode *node);
 static int  PrintCallArgs (TNode *node);
 static int  PrintCALL     (TNode *node);
 static int  PrintRET      (TNode *node);
@@ -95,5 +95,7 @@ static int  NodeToAsm     (TNode *node);
 #define INC(trgt) PrintA ("inc %s", trgt);
 #define PUSH(src) PrintA ("push %s", src);
 #define POP(dst)  PrintA ("pop %s", dst);
+
+#include "PRERENDER.h"
 
 #endif
