@@ -24,7 +24,7 @@ struct Id
 struct FuncId
 {
     int64_t hash;
-    int args_num;
+    int64_t addr;
 };
 
 struct Trans
@@ -33,8 +33,8 @@ struct Trans
     int    IdsNum;
     TNode  **tok;
     FuncId *FuncArr;
-    int     FuncsNum;
-    int     ce;
+    int    FuncsNum;
+    int    ce;
 };
 
 enum LANG_EXIT_CODES
@@ -166,7 +166,7 @@ int Translate (TNode *root, const char *name);
 
 int ToNASM (TNode *root, const char *name);
 
-int ToBIN (TNode *root, const char *name);
+int ToBIN (TNode *root, const char *name, int func_num, FuncId *func_ids);
 
 void FreeTransTree (TNode *root, TNode **nodes, int nodesNum);
 

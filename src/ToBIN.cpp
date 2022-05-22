@@ -94,7 +94,7 @@ static int PrintCallArgs (TNode *node)
         PrintA ("mov [rsp - %d], rax", 24 + pushed * 8);
 
         // push to stack
-        PrintB (MOV_TO_STACK_2_BYTE (-(24 + pushed * 8)));
+        PrintB (MOV_TO_STACK_4_BYTE (-(24 + pushed * 8)));
 
         CURR = LEFT;
     }
@@ -106,13 +106,33 @@ static int PrintCALL (TNode *node)
 {
     $ PrintCallArgs (RIGHT);
 
+    int64_t name_hash = LEFT->data;
+
     // Listing
     PrintA ("call f%ld ; call %.*s",
-            abs (LEFT->data), LEFT->len, LEFT->declared);
+            abs (name_hash), LEFT->len, LEFT->declared);
 
-    PrintB (CALL_NEAR_4_BYTE (0));
+    LOG_MSG ("Looking for hash = (%ld)", name_hash);
 
-    return 0;
+    // Find addr of called func
+    for (int func_iter = 0; func_iter < FuncNum; func_iter++)
+    {
+        LOG_MSG ("Comparing: name_hash = (%ld) and "
+                 "FuncArr[(%d/%d)].hash = (%ld)",
+                 name_hash, func_iter, FuncNum, FuncArr[func_iter].hash);
+
+        if (name_hash == FuncArr[func_iter].hash)
+        {
+            int64_t dest_addr = FuncArr[func_iter].addr;
+
+            // Check include/NASM_BIN_TABLE.h (11) for further explanations
+            return PrintB (CALL_NEAR_4_BYTE (dest_addr - ArrLen - 5));
+        }
+    }
+
+    LOG_ERR ("Hash (%ld): Nothing found!", name_hash);
+
+    return UNDECLARED;
 }
 
 static int PrintRET (TNode *node)
@@ -140,6 +160,12 @@ static int PrintRET (TNode *node)
 
 static int PrintDEF (TNode *node)
 {
+    static int func_iter = 0;
+
+    FuncArr[func_iter].addr = ArrLen;
+
+    func_iter++;
+
     $ assert (CURR);
 
     TNode *params = LEFT;
@@ -987,10 +1013,13 @@ static int ReadyBuf (void)
     return 0;
 }
 
-int ToBIN (TNode *root, const char *name)
+int ToBIN (TNode *root, const char *name, int func_num, FuncId *func_ids)
 {
     assert (root);
     assert (name);
+
+    FuncArr = func_ids;
+    FuncNum = func_num;
 
     DBINT;
 
@@ -1035,7 +1064,7 @@ int ToBIN (TNode *root, const char *name)
     DBINT;
 
     int (*testFunc) (void) = (int (*) (void)) (BinArr + 8);
-    testFunc();
+    // testFunc();
 
     LOG_MSG ("test func result = %d", 4);
 

@@ -58,7 +58,7 @@
 #define SUB_RAX_RBX                (INSTRUCTION { 0xD82948,    3,       0,    0 })
 
 // mov [rsp + arg], rax
-#define MOV_TO_STACK_2_BYTE(arg_)  (INSTRUCTION { 0x24848948,  4,       2, arg_ })
+#define MOV_TO_STACK_4_BYTE(arg_)  (INSTRUCTION { 0x24848948,  4,       4, arg_ })
 
 // mov rax, arg
 #define MOV_RAX_4_BYTE(arg_)       (INSTRUCTION { 0xB8,        1,       4, arg_ })
@@ -67,7 +67,7 @@
 #define MOV_RBP_4_BYTE_RAX(arg_)   (INSTRUCTION { 0x858948,    3,       4, arg_ })
 
 // mov rax, [rsp + arg]
-#define MOV_RAX_STACK_2_BYTE(arg_) (INSTRUCTION { 0x24848B48,  4,       2, arg_ })
+#define MOV_RAX_STACK_4_BYTE(arg_) (INSTRUCTION { 0x24848B48,  4,       4, arg_ })
 
 // mov rax, [rbp + arg]
 #define MOV_RAX_RBP_4_BYTE(arg_)   (INSTRUCTION { 0x858B48,    3,       4, arg_ })

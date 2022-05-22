@@ -47,7 +47,7 @@ static int CheckTok (Trans *trans, const char *req)
         {                                                                       \
             SyntaxErr ("Invalid syntax. Expected: " text                        \
                        "\ngot: %.*s\n", got->len, got->declared);               \
-            LOG_MSG ("Invalid syntax code: %s\n", got->declared);                \
+            LOG_MSG ("Invalid syntax code: %s\n", got->declared);               \
             return 0;                                                           \
         }                                                                       \
     }
@@ -442,6 +442,8 @@ static TNode *GetFuncParams (Trans *trans)
 
 TNode *GetFunc (Trans *trans)
 {
+    static int func_cap = INIT_IDS_NUM;
+
     TNode *root = CreateNodeWithStr ("define", TYPE_SERVICE);
     $ Require (DEFSTART);
 
@@ -472,6 +474,17 @@ TNode *GetFunc (Trans *trans)
 
     Require (BACK_ALGA);
     )
+
+    if (trans->FuncsNum >= func_cap)
+    {
+        void *tmp = realloc (trans->FuncArr, func_cap * 2 * sizeof (FuncId));
+        if (!tmp) COMP_ERR = MEM_ALLOC_ERR;
+
+        trans->FuncArr = (FuncId *) tmp;
+        func_cap *= 2;
+    }
+
+    trans->FuncArr[trans->FuncsNum++] = FuncId { .hash = name->data };
 
     return root;
 }

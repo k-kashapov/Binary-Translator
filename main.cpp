@@ -65,7 +65,7 @@ int main (int argc, const char **argv)
         }
         else if (io_config.settings & BIN_TRANS)
         {
-            ToBIN (res, io_config.output_file);
+            ToBIN (res, io_config.output_file, trans.FuncsNum, trans.FuncArr);
         }
         else
         {

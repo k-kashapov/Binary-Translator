@@ -19,14 +19,16 @@ struct INSTRUCTION
     int64_t arg     = 0;
 };
 
-static FILE *AsmFile   = NULL;
-static int  IdsNum     = 0;
-static Id   *IdsArr    = NULL;
-static int  Curr_rsp   = 0;
-static int  Frame      = 0;
-static char *BinArr    = NULL;
-static int  ArrLen     = 0;
-static int  ArrCap     = 0;
+static FILE    *AsmFile   = NULL;
+static char    *BinArr    = NULL;
+static int     ArrLen     = 0;
+static int     ArrCap     = 0;
+static Id      *IdsArr    = NULL;
+static int     IdsNum     = 0;
+static int     Curr_rsp   = 0;
+static int     Frame      = 0;
+static FuncId  *FuncArr   = NULL;
+static int     FuncNum    = 0;
 
 // initial binary array capacity = page size
 const static int INIT_CAP = 512;

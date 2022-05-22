@@ -2,88 +2,64 @@
 00000008:		PUSH_EVERYTING
 00000012:		call main
 00000017:		POP_EVERYTING
-00000022:		f1058: ; def main
+00000021:		ret
+00000022:		f7639: ; def Функция
 00000022:		push rbp ; create stack frame
 00000023:		mov rbp, rsp
 
-00000026:		sub rsp, 0 ; jump over parameters
+00000026:		sub rsp, 16 ; jump over parameters
 
 0000002d:		mov rax, 0 ; const value << 9
-00000032:		sub rsp, 8 ; declared ЛошедьА; [8; 16]
-00000039:		mov [rbp - 8], rax ; ЛошедьА = rax
+00000032:		sub rsp, 8 ; declared Разность; [24; 32]
+00000039:		mov [rbp - 24], rax ; Разность = rax
 00000040:		
-00000040:		mov rax, 0 ; const value << 9
-00000045:		sub rsp, 8 ; declared ЛошедьБ; [16; 24]
-0000004c:		mov [rbp - 16], rax ; ЛошедьБ = rax
-00000053:		
-00000053:		mov rax, 5120 ; const value << 9
-00000058:		mov [rbp - 8], rax ; ЛошедьА = rax
-0000005f:		
-0000005f:		mov rax, 3072 ; const value << 9
-00000064:		mov [rbp - 16], rax ; ЛошедьБ = rax
-0000006b:		
-0000006b:		mov r12, rsp ; save rsp to rcx
-0000006e:		; while
-0000006e:		.0while:
-0000006e:		; JG
-0000006e:		mov rax, [rbp - 8] ; ЛошедьА
-00000075:		mov rbx, rax ; save left to rbx
-00000078:		mov rax, 512 ; const value << 9
-0000007d:		cmp rbx, rax
-00000080:		JG .0cmp
+00000040:		mov rax, [rbp - 16] ; Правый
+00000047:		push rax
 
-00000082:		xor rax, rax ; false
-00000085:		jmp .0cmpEnd
+00000048:		mov rax, [rbp - 8] ; Левый
+0000004f:		pop rbx
 
-0000008a:		.0cmp:
-0000008a:		mov rax, 1 ; true
+00000050:		SUB rax, rbx
 
-0000008f:		.0cmpEnd:
+00000053:		mov [rbp - 24], rax ; Разность = rax
+0000005a:		
+0000005a:		mov rax, [rbp - 24] ; Разность
+00000061:		mov rsp, rbp
+00000064:		pop rbp ; stack frame return
 
-0000008f:		test rax, rax
-00000092:		je .0whileEnd
-00000094:		mov rax, 0 ; const value << 9
-00000099:		sub rsp, 8 ; declared Временно; [24; 32]
-000000a0:		mov [rbp - 24], rax ; Временно = rax
-000000a7:		
-000000a7:		mov rax, 512 ; const value << 9
-000000ac:		push rax
+00000065:		ret
+00000066:		
+00000066:		
+00000066:		f1058: ; def main
+00000066:		push rbp ; create stack frame
+00000067:		mov rbp, rsp
 
-000000ad:		mov rax, [rbp - 24] ; Временно
-000000b4:		pop rbx
+0000006a:		sub rsp, 0 ; jump over parameters
 
-000000b5:		ADD rax, rbx
+00000071:		mov rax, 0 ; const value << 9
+00000076:		sub rsp, 8 ; declared ЛошедьА; [8; 16]
+0000007d:		mov [rbp - 8], rax ; ЛошедьА = rax
+00000084:		
+00000084:		mov rax, 3072 ; const value << 9
+00000089:		sub rsp, 8 ; declared Шесть; [16; 24]
+00000090:		mov [rbp - 16], rax ; Шесть = rax
+00000097:		
+00000097:		mov rax, 1024 ; const value << 9
+0000009c:		sub rsp, 8 ; declared Два; [24; 32]
+000000a3:		mov [rbp - 24], rax ; Два = rax
+000000aa:		
+000000aa:		; call args
+000000aa:		mov rax, [rbp - 16] ; Шесть
+000000b1:		mov [rsp - 24], rax
+000000b9:		mov rax, [rbp - 24] ; Два
+000000c0:		mov [rsp - 32], rax
+000000c8:		call f7639 ; call Функция
+000000cd:		mov [rbp - 8], rax ; ЛошедьА = rax
+000000d4:		
+000000d4:		mov rax, 0 ; const value << 9
+000000d9:		mov rsp, rbp
+000000dc:		pop rbp ; stack frame return
 
-000000b8:		mov [rbp - 24], rax ; Временно = rax
-000000bf:		
-000000bf:		mov rax, [rbp - 24] ; Временно
-000000c6:		push rax
-
-000000c7:		mov rax, [rbp - 16] ; ЛошедьБ
-000000ce:		pop rbx
-
-000000cf:		ADD rax, rbx
-
-000000d2:		mov [rbp - 16], rax ; ЛошедьБ = rax
-000000d9:		
-000000d9:		mov rax, 512 ; const value << 9
-000000de:		push rax
-
-000000df:		mov rax, [rbp - 8] ; ЛошедьА
-000000e6:		pop rbx
-
-000000e7:		SUB rax, rbx
-
-000000ea:		mov [rbp - 8], rax ; ЛошедьА = rax
-000000f1:		
-000000f1:		mov rsp, r12 ; forget any variables created during the loop
-000000f4:		jmp .0while
-000000f9:		.0whileEnd:
-000000f9:		
-000000f9:		mov rax, [rbp - 16] ; ЛошедьБ
-00000100:		mov rsp, rbp
-00000103:		pop rbp ; stack frame return
-
-00000104:		ret
-00000105:		
-00000105:		
+000000dd:		ret
+000000de:		
+000000de:		
