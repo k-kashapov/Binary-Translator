@@ -660,15 +660,6 @@ static void PrintSTD_OUT (void)
         "    call itoa10\n"
         "    pop rax\n"
 
-        // "    push rdi\n"
-        // "    mov rax, 0x01\n"
-        // "    mov rsi, [rbp - 8] ; buffer start\n"
-        // "    mov rdi, 0x01\n"
-        // "    mov rdx, r8\n"
-        // "    add rdx, 5\n"
-        // "    syscall\n"
-
-        "    push r8\n"
         "    add rdi, r8 ; step over the word\n"
 
         "    mov BYTE [rdi], 0x2E ; \\n\n"
@@ -684,15 +675,14 @@ static void PrintSTD_OUT (void)
         "    call itoa10\n"
 
         "    mov rax, 0x01 ; write\n"
+
+        "    mov rdx, rdi ; buffer len\n"
+        "    sub rdx, rsp ; buffer len\n"
+        "    inc rdx      ; buffer len\n"
+
         "    mov rdi, 0x01 ; stdout\n"
-
         "    mov rsi, rsp ; buffer start\n"
-        "    add rsi, 8\n"
 
-        "    mov rdx, r8 ; buffer len computation\n"
-        "    pop r8 ; first part len\n"
-        "    add rdx, r8\n"
-        "    add rdx, 6 ; constant part of the string\n"
         "    syscall\n"
 
         "    mov rsp, rbp\n"
