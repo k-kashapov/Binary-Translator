@@ -386,11 +386,16 @@ static int PrintPow (TNode *node)
     PUSH ("rax\n");
 
     // Load args into FPU stack
-    PrintA ("fild  WORD [rsp]            ; load base onto FPU stack");
-    PrintA ("fidiv DWORD [const_for_pow] ; convert from pseudo-float\n");
+    PrintA ("fild  WORD [rsp] ; load base onto FPU stack");
 
-    PrintA ("fild  WORD [rsp + %d]      ; load power onto FPU stack", INT_LEN);
-    PrintA ("fidiv DWORD [const_for_pow] ; convert from pseudo-float\n");
+    PrintA ("push 512");
+
+    PrintA ("fidiv WORD [rsp] ; convert from pseudo-float\n");
+
+    PrintA ("fild  WORD [rsp + 16] ; load power onto FPU stack");
+    PrintA ("fidiv WORD [rsp]      ; convert from pseudo-float\n");
+
+    PrintA ("add rsp, 8  ; remove 512 from stack");
 
     PrintA ("fyl2x ; power * log_2_(base)\n");
 
@@ -650,6 +655,8 @@ static void PrintSTD_OUT (void)
         "    push rax\n"
         "    shr rax, %d\n"
         "    mov rdx, rax\n"
+        "    mov r10, 10\n"
+        "    call CntBytes\n"
         "    call itoa10\n"
         "    pop rax\n"
 
@@ -672,6 +679,8 @@ static void PrintSTD_OUT (void)
         "    mul rbx\n"
         "    shr rax, %d\n"
         "    mov rdx, rax\n"
+        "    mov WORD [rdi], 0x30303030\n"
+        "    add rdi, 2\n"
         "    call itoa10\n"
 
         "    mov rax, 0x01 ; write\n"
@@ -695,8 +704,34 @@ static void PrintSTD_OUT (void)
         ";==============================================\n\n"
 
         ";==============================================\n"
+        "; Count bytes\n"
+        "; Counts the amount of bytes needed to write down an int\n"
+        "; Expects:\n"
+        ";      rax - value\n"
+        ";      r10 = 10\n"
+        ";      rdi - buffer\n"
+        ";==============================================\n\n"
+
+        "CntBytes:              ; skips, bytes that are required to save the value\n"
+            "xor r8, r8         ; reset bytecount\n"
+            "push rax\n"
+        ".loop:"
+            "xor rdx, rdx		; reset remaining\n"
+            "div r10            ; rax = rax / 10; rdx = rax % 10\n"
+            "inc rdi\n"
+            "inc r8\n"
+            "cmp rax, 0\n"
+            "ja .loop\n"
+            "mov rax, r9           	; reset value\n"
+            "mov byte [rdi], 00\n"
+            "dec rdi\n"
+            "pop rax\n"
+            "ret\n"
+
+        ";==============================================\n"
         "; Converts integer value into a string, base 10\n"
         "; Expects:\n"
+        ";       r10 = 10\n"
         ";       rdx - Integer value\n"
         ";       rdi - Buffer to write into\n"
         "; Returns:\n"
@@ -706,31 +741,19 @@ static void PrintSTD_OUT (void)
         ";==============================================\n"
 
         "itoa10:\n"
-            "xor r8, r8		; r8 = bytes counter\n"
-            "mov r9, rdx 		; from now on, value is stored in r9\n"
-                "mov rax, rdx		; save value to rax\n"
-                "mov r10, 10\n"
-        ".CntBytes:              	; skips, bytes that are required to save the value\n"
-                "xor rdx, rdx		; reset remaining\n"
-                "div r10            ; rax = rax / 10; rdx = rax % 10\n"
-                "inc rdi\n"
-                "inc r8\n"
-                "cmp rax, 0000h\n"
-                "ja .CntBytes\n"
-                "mov rax, r9           	; reset value\n"
-                "mov byte [rdi], 00\n"
-                "dec rdi\n"
+            "xor r8, r8		    ; r8 = bytes counter\n"
         ".Print:\n"
-                "xor rdx, rdx\n"
-                "div r10                ; rax = rax / 10; rdx = rax % 10\n"
-                "add dl, '0'           	; to ASCII\n"
-                "mov [rdi], dl\n"
-                "dec rdi\n"
-                "cmp rax, 00h\n"
-                "ja .Print\n"
-                "; rdi = &buffer - 1\n"
-                "inc rdi ; rdi = &buffer\n"
-                "ret\n\n",
+            "xor rdx, rdx\n"
+            "div r10                ; rax = rax / 10; rdx = rax % 10\n"
+            "add dl, '0'           	; to ASCII\n"
+            "mov [rdi], dl\n"
+            "dec rdi\n"
+            "inc r8\n"
+            "cmp rax, 00h\n"
+            "ja .Print\n"
+            "; rdi = &buffer - 1\n"
+            "inc rdi ; rdi = &buffer\n"
+            "ret\n\n",
         NUMS_AFTER_POINT, (1 << NUMS_AFTER_POINT) - 1, NUMS_AFTER_POINT);
 
     return;

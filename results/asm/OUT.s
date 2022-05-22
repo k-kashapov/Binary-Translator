@@ -35,7 +35,17 @@ f1058: ; def main
 	sub rsp, 8 ; declared ЛошедьБ; [8; 16]
 	mov [rbp - 8], rax ; ЛошедьБ = rax
 	
-	mov rax, 4608 ; const value << 9
+		mov rax, 262144 ; const value << 9
+		push rax
+
+		mov rax, 261632 ; const value << 9
+		pop rbx
+
+		sar rbx, 9 ; pseudo-float emul
+		cqo
+
+		idiv rbx
+
 	mov [rbp - 8], rax ; ЛошедьБ = rax
 	
 	mov rax, [rbp - 8] ; ЛошедьБ
@@ -79,6 +89,8 @@ out:
     push rax
     shr rax, 9
     mov rdx, rax
+    mov r10, 10
+    call CntBytes
     call itoa10
     pop rax
     push r8
@@ -90,6 +102,8 @@ out:
     mul rbx
     shr rax, 9
     mov rdx, rax
+    mov WORD [rdi], 0x30303030
+    add rdi, 2
     call itoa10
     mov rax, 0x01 ; write
     mov rdi, 0x01 ; stdout
@@ -108,8 +122,32 @@ out:
 ;==============================================
 
 ;==============================================
+; Count bytes
+; Counts the amount of bytes needed to write down an int
+; Expects:
+;      rax - value
+;      r10 = 10
+;      rdi - buffer
+;==============================================
+
+CntBytes:              ; skips, bytes that are required to save the value
+xor r8, r8         ; reset bytecount
+push rax
+.loop:xor rdx, rdx		; reset remaining
+div r10            ; rax = rax / 10; rdx = rax % 10
+inc rdi
+inc r8
+cmp rax, 0
+ja .loop
+mov rax, r9           	; reset value
+mov byte [rdi], 00
+dec rdi
+pop rax
+ret
+;==============================================
 ; Converts integer value into a string, base 10
 ; Expects:
+;       r10 = 10
 ;       rdx - Integer value
 ;       rdi - Buffer to write into
 ; Returns:
@@ -118,26 +156,14 @@ out:
 ;       rdx, r10, r9
 ;==============================================
 itoa10:
-xor r8, r8		; r8 = bytes counter
-mov r9, rdx 		; from now on, value is stored in r9
-mov rax, rdx		; save value to rax
-mov r10, 10
-.CntBytes:              	; skips, bytes that are required to save the value
-xor rdx, rdx		; reset remaining
-div r10            ; rax = rax / 10; rdx = rax % 10
-inc rdi
-inc r8
-cmp rax, 0000h
-ja .CntBytes
-mov rax, r9           	; reset value
-mov byte [rdi], 00
-dec rdi
+xor r8, r8		    ; r8 = bytes counter
 .Print:
 xor rdx, rdx
 div r10                ; rax = rax / 10; rdx = rax % 10
 add dl, '0'           	; to ASCII
 mov [rdi], dl
 dec rdi
+inc r8
 cmp rax, 00h
 ja .Print
 ; rdi = &buffer - 1

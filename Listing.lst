@@ -15,16 +15,20 @@
 00000159:		sub rsp, 8 ; declared ЛошедьБ; [8; 16]
 00000160:		mov [rbp - 8], rax ; ЛошедьБ = rax
 00000167:		
-00000167:		mov rax, 4608 ; const value << 9
-0000016c:		mov [rbp - 8], rax ; ЛошедьБ = rax
-00000173:		
-00000173:		mov rax, [rbp - 8] ; ЛошедьБ
-0000017a:		call out
-0000017f:		
-0000017f:		mov rax, [rbp - 8] ; ЛошедьБ
-00000186:		mov rsp, rbp
-00000189:		pop rbp ; stack frame return
+00000167:		mov rax, 0 ; const value << 9
+0000016c:		sub rsp, 8 ; declared ЛошедьФ; [16; 24]
+00000173:		mov [rbp - 16], rax ; ЛошедьФ = rax
+0000017a:		
+0000017a:		call IN
+0000017f:		mov [rbp - 8], rax ; ЛошедьБ = rax
+00000186:		
+00000186:		mov rax, [rbp - 8] ; ЛошедьБ
+0000018d:		call out
+00000192:		
+00000192:		mov rax, [rbp - 8] ; ЛошедьБ
+00000199:		mov rsp, rbp
+0000019c:		pop rbp ; stack frame return
 
-0000018a:		ret
-0000018b:		
-0000018b:		
+0000019d:		ret
+0000019e:		
+0000019e:		
