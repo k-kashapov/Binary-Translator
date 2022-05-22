@@ -160,7 +160,7 @@ static int PrintRET (TNode *node)
 
 static int PrintDEF (TNode *node)
 {
-    static int func_iter = 0;
+    static int func_iter = 3;
 
     FuncArr[func_iter].addr = ArrLen;
 
@@ -263,7 +263,7 @@ static int PrintIN (TNode *node)
     // Listing
     PrintA ("call atoi");
 
-    PrintB (CALL_NEAR_4_BYTE (-3));
+    PrintB (CALL_NEAR_4_BYTE (FuncArr[0].addr - ArrLen - 5));
 
     // Listing
     FLOAT_L ("rax");
@@ -1039,39 +1039,48 @@ int ToBIN (TNode *root, const char *name, int func_num, FuncId *func_ids)
     PrintA ("const_for_pow: dq 512");
     PrintB (INSTRUCTION { 0x512, 8, 0, 0});
 
-    PrintA ("PUSH_EVERYTING");
-    memcpy (BinArr + ArrLen, PUSH_EVERYTING, sizeof (PUSH_EVERYTING));
-    ArrLen += sizeof (PUSH_EVERYTING);
+    PRERENDER (PUSH_EVERYTING);
 
     PrintA ("call main");
     PrintB (CALL_NEAR_4_BYTE (0));
 
     int main_arg_offs = ArrLen - 4;
 
-    PrintA ("POP_EVERYTING");
-    memcpy (BinArr + ArrLen, POP_EVERYTING, sizeof (POP_EVERYTING));
-    ArrLen += sizeof (POP_EVERYTING);
+    PRERENDER (POP_EVERYTING);
 
     PrintA ("ret");
     PrintB (RET_1_BYTE);
 
+    FuncArr[0].addr = ArrLen;
+    PRERENDER (IN_CODE);
+
+    FuncArr[1].addr = ArrLen;
+    // PRERENDER (OUT_CODE);
+
+    FuncArr[2].addr = ArrLen;
+    // PRERENDER (POW_CODE);
+
     int err = NodeToAsm (root);
 
-    for (int func_iter = 3; func_iter < FuncNum; func_iter++)
+    if (FuncArr[FuncNum - 1].hash == MAIN_HASH)
     {
-        LOG_MSG ("Comparing: MAIN_HASH = (%ld) and "
-                 "FuncArr[(%d/%d)].hash = (%ld)",
-                 MAIN_HASH, func_iter, FuncNum - 1, FuncArr[func_iter].hash);
+        int64_t dest_addr = FuncArr[FuncNum - 1].addr;
 
-        if (FuncArr[func_iter].hash == MAIN_HASH)
-        {
-            int64_t dest_addr = FuncArr[func_iter].addr;
+        LOG_MSG ("MAIN_HASH (%ld) Found in FuncArr[%d] at offs (%d)",
+                 MAIN_HASH, FuncNum - 1, dest_addr);
 
-            LOG_MSG ("Found (%ld) at %d", MAIN_HASH, func_iter);
+        LOG_MSG ("Inputting main jmp offset: writing (%d) to BinArr[0x%08lx]",
+                 dest_addr - main_arg_offs - 4, main_arg_offs);
 
-            // Check include/NASM_BIN_TABLE.h (11) for further explanations
-            *(int32_t*) (BinArr + main_arg_offs) = dest_addr - main_arg_offs - 4;
-        }
+        // Check include/NASM_BIN_TABLE.h (11) for further explanations
+        *(int32_t*) (BinArr + main_arg_offs) = dest_addr - main_arg_offs - 4;
+    }
+    else
+    {
+        LOG_ERR ("MAIN_HASH (%ld) not found!!!", MAIN_HASH);
+        free (BinArr);
+        fclose (AsmFile);
+        return UNDECLARED;
     }
 
 // ---------------- <Testing> -----------------
@@ -1082,7 +1091,7 @@ int ToBIN (TNode *root, const char *name, int func_num, FuncId *func_ids)
     DBINT;
 
     int (*testFunc) (void) = (int (*) (void)) (BinArr + 8);
-    // testFunc();
+    testFunc();
 
     LOG_MSG ("test func result = %d", 4);
 

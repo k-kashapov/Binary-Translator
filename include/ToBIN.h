@@ -98,6 +98,13 @@ static int  NodeToAsm     (TNode *node);
 #define PUSH(src) PrintA ("push %s", src);
 #define POP(dst)  PrintA ("pop %s", dst);
 
+#define PRERENDER(arr_name_)                                                    \
+    {                                                                           \
+        PrintA (#arr_name_);                                                    \
+        memcpy (BinArr + ArrLen, arr_name_, sizeof (arr_name_));                \
+        ArrLen += sizeof (arr_name_);                                           \
+    }
+
 #include "PRERENDER.h"
 
 #endif
