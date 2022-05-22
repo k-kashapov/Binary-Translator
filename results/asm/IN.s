@@ -32,95 +32,31 @@ f1058: ; def main
 	sub rsp, 0 ; jump over parameters
 
 	mov rax, 0 ; const value << 9
-	sub rsp, 8 ; declared ЛошедьА; [8; 16]
-	mov [rbp - 8], rax ; ЛошедьА = rax
+	sub rsp, 8 ; declared ЛошедьБ; [8; 16]
+	mov [rbp - 8], rax ; ЛошедьБ = rax
 	
 	mov rax, 0 ; const value << 9
-	sub rsp, 8 ; declared ЛошедьБ; [16; 24]
-	mov [rbp - 16], rax ; ЛошедьБ = rax
-	
-	mov rax, 0 ; const value << 9
-	sub rsp, 8 ; declared ЛошедьВ; [24; 32]
-	mov [rbp - 24], rax ; ЛошедьВ = rax
+	sub rsp, 8 ; declared ЛошедьФ; [16; 24]
+	mov [rbp - 16], rax ; ЛошедьФ = rax
 	
 	xor rdi, rdi
-	mov rsi, inputbuf ; buffer for inputted value
+	sub rsp, 8
+	mov rsi, rsp ; buffer for inputted value
 
-	mov rdx, 15
+	mov rdx, 7
 	xor rax, rax
 	syscall
+	mov rsi, rsp
 	mov rcx, rax
 	call atoi
+	add rsp, 8
 	sal rax, 9 ; pseudo-float emul
-	mov [rbp - 8], rax ; ЛошедьА = rax
+	mov [rbp - 8], rax ; ЛошедьБ = rax
 	
-	xor rdi, rdi
-	mov rsi, inputbuf ; buffer for inputted value
-
-	mov rdx, 15
-	xor rax, rax
-	syscall
-	mov rcx, rax
-	call atoi
-	sal rax, 9 ; pseudo-float emul
-	mov [rbp - 16], rax ; ЛошедьБ = rax
-	
-		mov rax, 1024 ; const value << 9
-		push rax
-
-			mov rax, [rbp - 8] ; ЛошедьА
-			test rax, rax
-			jz .DontPow
-			cmp rax, 1
-			je .DontPow
-			push rax
-
-			mov rax, 512 ; const value << 9
-			cmp rax, 1
-			je .DontPowButPop
-			push rax
-
-			fild  WORD [rsp]            ; load base onto FPU stack
-			fidiv DWORD [const_for_pow] ; convert from pseudo-float
-
-			fild  WORD [rsp + 8]      ; load power onto FPU stack
-			fidiv DWORD [const_for_pow] ; convert from pseudo-float
-
-			fyl2x ; power * log_2_(base)
-
-			; value between -1 and 1 is required by pow of 2 command
-			fist DWORD [rsp - 8] ; cast to int
-			fild DWORD [rsp - 8] ;
-			fsub      ; fit into [-1; 1]
-
-			f2xm1 ; 2^(power * log_2_(base)) - 1 = base^power
-
-			fld1   ; push 1
-			fadd   ; add 1 to the result
-
-			fild DWORD [rsp - 8] ; load casted value
-			fxch   ; exchange st(0) <-> st(1)
-			fscale ; multiply by remaining power of 2
-			fimul DWORD [const_for_pow] ; to pseudo-float
-			fistp DWORD [rsp + 8]      ; save pow value to stack
-
-			add rsp, 8
-			.DontPowButPop:
-			pop rax
-			.DontPow:
-		pop rbx
-
-		sar rbx, 9 ; pseudo-float emul
-		cqo
-
-		idiv rbx
-
-	mov [rbp - 24], rax ; ЛошедьВ = rax
-	
-	mov rax, [rbp - 24] ; ЛошедьВ
+	mov rax, [rbp - 8] ; ЛошедьБ
 	call out
 	
-	mov rax, 0 ; const value << 9
+	mov rax, [rbp - 8] ; ЛошедьБ
 	mov rsp, rbp
 	pop rbp ; stack frame return
 
@@ -239,7 +175,7 @@ section .text
 ;==============================================
 ; StdLib: atoi
 ; Expects:
-;     rsi - inputbuf
+;     rsi = rsp - input buffer
 ;     rcx - len of input
 ; Returns:
 ;     rax - result int
@@ -261,7 +197,7 @@ atoi:
     mul rdx
     add rax, rbx
     loop .Loop
-.End:    cmp BYTE [inputbuf], '-'
+.End:    cmp BYTE [rsp + 8], '-'
     jne .Ret
     neg rax
 .Ret:

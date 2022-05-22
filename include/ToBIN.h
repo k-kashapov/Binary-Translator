@@ -31,8 +31,8 @@ static FuncId  *FuncArr   = NULL;
 static int     FuncNum    = 0;
 
 // initial binary array capacity = page size
-const static int INIT_CAP = 512;
-const static int INT_LEN  = 8;   // length of single int
+const static int INIT_CAP  = 512;
+const static int INT_LEN   = 8;   // length of single int
 
 static int  PrintB        (INSTRUCTION ins);
 static int  Bflush        (FILE *flushTO);

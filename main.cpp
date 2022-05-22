@@ -32,11 +32,12 @@ int main (int argc, const char **argv)
         int nodesNum = 0;
         TNode **nodes = LexicAnalysis (code, &nodesNum);
 
-        Trans trans   = {};
-        trans.IdsArr  = (Id *)     calloc (INIT_IDS_NUM, sizeof (Id));
-        trans.FuncArr = (FuncId *) calloc (INIT_IDS_NUM, sizeof (FuncId));
-        trans.tok     = nodes;
-        trans.ce      = 0;
+        Trans trans    = {};
+        trans.IdsArr   = (Id *)     calloc (INIT_IDS_NUM, sizeof (Id));
+        trans.FuncArr  = (FuncId *) calloc (INIT_IDS_NUM, sizeof (FuncId));
+        trans.FuncsNum = 3; // For "in", "out" and "pow" founctions
+        trans.tok      = nodes;
+        trans.ce       = 0;
 
         int comp_err = 0;
         res = GetG (&trans, &comp_err);

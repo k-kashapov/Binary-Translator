@@ -144,14 +144,20 @@ static int PrintIN (TNode *node)
     IN_USED = 1;
 
     PrintA ("xor rdi, rdi");
-    MOV_SS ("rsi", "inputbuf ; buffer for inputted value\n");
-    MOV_SD ("rdx", 15);
+    SUB_SD ("rsp", 8);
+
+    MOV_SS ("rsi", "rsp ; buffer for inputted value\n");
+    MOV_SD ("rdx", 7);
 
     PrintA ("xor rax, rax");
     PrintA ("syscall");
 
+    MOV_SS ("rsi", "rsp");
     MOV_SS ("rcx", "rax");
     PrintA ("call atoi");
+
+    ADD_SD ("rsp", 8);
+
     FLOAT_L ("rax");
 
     return 0;
@@ -738,7 +744,7 @@ static void PrintSTD_IN (void)
         ";==============================================\n"
         "; StdLib: atoi\n"
         "; Expects:\n"
-        ";     rsi - inputbuf\n"
+        ";     rsi = rsp - input buffer\n"
         ";     rcx - len of input\n"
         "; Returns:\n"
         ";     rax - result int\n"
@@ -762,7 +768,7 @@ static void PrintSTD_IN (void)
         "    add rax, rbx\n"
         "    loop .Loop\n"
         ".End:"
-        "    cmp BYTE [inputbuf], \'-\'\n"
+        "    cmp BYTE [rsp + 8], \'-\'\n"
         "    jne .Ret\n"
         "    neg rax\n"
         ".Ret:\n"

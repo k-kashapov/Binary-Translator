@@ -115,11 +115,11 @@ static int PrintCALL (TNode *node)
     LOG_MSG ("Looking for hash = (%ld)", name_hash);
 
     // Find addr of called func
-    for (int func_iter = 0; func_iter < FuncNum; func_iter++)
+    for (int func_iter = 3; func_iter < FuncNum; func_iter++)
     {
         LOG_MSG ("Comparing: name_hash = (%ld) and "
                  "FuncArr[(%d/%d)].hash = (%ld)",
-                 name_hash, func_iter, FuncNum, FuncArr[func_iter].hash);
+                 name_hash, func_iter, FuncNum - 1, FuncArr[func_iter].hash);
 
         if (name_hash == FuncArr[func_iter].hash)
         {
@@ -1043,9 +1043,10 @@ int ToBIN (TNode *root, const char *name, int func_num, FuncId *func_ids)
     memcpy (BinArr + ArrLen, PUSH_EVERYTING, sizeof (PUSH_EVERYTING));
     ArrLen += sizeof (PUSH_EVERYTING);
 
-    // TODO: call real main
     PrintA ("call main");
-    PrintB (CALL_NEAR_4_BYTE (sizeof (POP_EVERYTING) + 1));
+    PrintB (CALL_NEAR_4_BYTE (0));
+
+    int main_arg_offs = ArrLen - 4;
 
     PrintA ("POP_EVERYTING");
     memcpy (BinArr + ArrLen, POP_EVERYTING, sizeof (POP_EVERYTING));
@@ -1055,6 +1056,23 @@ int ToBIN (TNode *root, const char *name, int func_num, FuncId *func_ids)
     PrintB (RET_1_BYTE);
 
     int err = NodeToAsm (root);
+
+    for (int func_iter = 3; func_iter < FuncNum; func_iter++)
+    {
+        LOG_MSG ("Comparing: MAIN_HASH = (%ld) and "
+                 "FuncArr[(%d/%d)].hash = (%ld)",
+                 MAIN_HASH, func_iter, FuncNum - 1, FuncArr[func_iter].hash);
+
+        if (FuncArr[func_iter].hash == MAIN_HASH)
+        {
+            int64_t dest_addr = FuncArr[func_iter].addr;
+
+            LOG_MSG ("Found (%ld) at %d", MAIN_HASH, func_iter);
+
+            // Check include/NASM_BIN_TABLE.h (11) for further explanations
+            *(int32_t*) (BinArr + main_arg_offs) = dest_addr - main_arg_offs - 4;
+        }
+    }
 
 // ---------------- <Testing> -----------------
 
