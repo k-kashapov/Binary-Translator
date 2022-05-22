@@ -35,22 +35,7 @@ f1058: ; def main
 	sub rsp, 8 ; declared ЛошедьБ; [8; 16]
 	mov [rbp - 8], rax ; ЛошедьБ = rax
 	
-	mov rax, 0 ; const value << 9
-	sub rsp, 8 ; declared ЛошедьФ; [16; 24]
-	mov [rbp - 16], rax ; ЛошедьФ = rax
-	
-	xor rdi, rdi
-	sub rsp, 8
-	mov rsi, rsp ; buffer for inputted value
-
-	mov rdx, 7
-	xor rax, rax
-	syscall
-	mov rsi, rsp
-	mov rcx, rax
-	call atoi
-	add rsp, 8
-	sal rax, 9 ; pseudo-float emul
+	mov rax, 4608 ; const value << 9
 	mov [rbp - 8], rax ; ЛошедьБ = rax
 	
 	mov rax, [rbp - 8] ; ЛошедьБ
@@ -63,28 +48,31 @@ f1058: ; def main
 	ret
 	
 
-section .data
-
-outArr: db 10, ">> "
-outBig: dq 0, 0
-outDot: db '.'
-outLow: dq 0, 0 
-
 section .text
 
 ;==============================================
 ; StdLib: out
 ; Expects:
-;   outbuffer
 ;   rax - value
 ; Returns: None
+; Corrupt:
+;   rdi = rsp - Will create buffer on stack
 ;==============================================
 
 out:
-    mov rdi, outBig
+    push rbp
+    mov rbp, rsp
+    sub rsp, 32
+    mov rdi, rsp
+    mov BYTE [rdi], 0x0A ; \n
+    inc rdi
+    mov WORD [rdi], ">>"; \n
+    add rdi, 2
+    mov BYTE [rdi], 0x20 ; \n
+    inc rdi
     cmp rax, 0
     jge .NotNegative
-    mov BYTE [outBig], '-'
+    mov BYTE [rdi], '-'
     inc rdi
     neg rax
 .NotNegative:
@@ -92,42 +80,33 @@ out:
     shr rax, 9
     mov rdx, rax
     call itoa10
-    mov rax, 0x01
-    mov rdi, 0x01
-    mov rsi, outArr
-    mov rdx, r8
-    add rdx, 5
-    syscall
     pop rax
+    push r8
+    add rdi, r8 ; step over the word
+    mov BYTE [rdi], 0x2E ; \n
+    inc rdi
     and rax, 511
     mov rbx, 1000
     mul rbx
     shr rax, 9
     mov rdx, rax
-    mov rdi, outLow
     call itoa10
-    mov rax, 0x01
-    mov rdi, 0x01
-    mov rsi, outDot
-    mov rdx, r8
-    add rdx, 1
+    mov rax, 0x01 ; write
+    mov rdi, 0x01 ; stdout
+    mov rsi, rsp ; buffer start
+    add rsi, 8
+    mov rdx, r8 ; buffer len computation
+    pop r8 ; first part len
+    add rdx, r8
+    add rdx, 6 ; constant part of the string
     syscall
+    mov rsp, rbp
+    pop rbp
     ret
 ;==============================================
 ; StdLib: itoa
 ;==============================================
 
-CountBytes:
-	xor rax, rax
-        mov rax, rdx	; save value in r10 to count symbols in it
-        xor ch, ch
-.Loop:
-        inc ch  	; bytes counter
-        shr rax, cl     ; rax >> cl
-        jnz .Loop
-	xor rax, rax
-        mov al, ch
-ret
 ;==============================================
 ; Converts integer value into a string, base 10
 ; Expects:
@@ -164,43 +143,5 @@ ja .Print
 ; rdi = &buffer - 1
 inc rdi ; rdi = &buffer
 ret
-
-
-section .bss
-
-inputbuf: resq 2
-
-section .text
-
-;==============================================
-; StdLib: atoi
-; Expects:
-;     rsi = rsp - input buffer
-;     rcx - len of input
-; Returns:
-;     rax - result int
-;==============================================
-atoi:
-    xor rax, rax
-    xor rbx, rbx
-    dec rcx
-    jz .End
-    cmp BYTE [rsi], '-'
-    jne .Loop
-    inc rsi
-    dec rcx
-.Loop:
-    mov bl, [rsi]
-    sub rbx, '0'
-    inc rsi
-    mov rdx, 10
-    mul rdx
-    add rax, rbx
-    loop .Loop
-.End:    cmp BYTE [rsp + 8], '-'
-    jne .Ret
-    neg rax
-.Ret:
-    ret
 
 
