@@ -455,6 +455,17 @@ TNode *GetFunc (Trans *trans)
     name = GetTok (trans);
     MovePtr (trans);
 
+    if (trans->FuncsNum >= func_cap)
+    {
+        void *tmp = realloc (trans->FuncArr, func_cap * 2 * sizeof (FuncId));
+        if (!tmp) COMP_ERR = MEM_ALLOC_ERR;
+
+        trans->FuncArr = (FuncId *) tmp;
+        func_cap *= 2;
+    }
+
+    trans->FuncArr[trans->FuncsNum++] = FuncId { .hash = name->data };
+
     Require (DEFNAME);
 
     if (name->type != TYPE_ID)
@@ -474,17 +485,6 @@ TNode *GetFunc (Trans *trans)
 
     Require (BACK_ALGA);
     )
-
-    if (trans->FuncsNum >= func_cap)
-    {
-        void *tmp = realloc (trans->FuncArr, func_cap * 2 * sizeof (FuncId));
-        if (!tmp) COMP_ERR = MEM_ALLOC_ERR;
-
-        trans->FuncArr = (FuncId *) tmp;
-        func_cap *= 2;
-    }
-
-    trans->FuncArr[trans->FuncsNum++] = FuncId { .hash = name->data };
 
     return root;
 }

@@ -79,10 +79,10 @@ The ELF execution time is then compared with the same task performance on our Pr
 
 | Architecture | Exec. Time, s |
 |:------------:|:-------------:|
-|   Processor  |  18.50 ±0.37  |
+|   Processor  |  5.20 ± 0...  |
 |    x86_64    | 0.011 ± 0.001 |
 
-#### Overall speedup is approximately 1700x
+#### Overall speedup is approximately 450x
 
 # Acknowledgements
 
