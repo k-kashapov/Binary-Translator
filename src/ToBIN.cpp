@@ -106,6 +106,10 @@ static int PrintCALL (TNode *node)
 {
     $ PrintCallArgs (RIGHT);
 
+    #ifdef LOGGING
+    PrintB (INT_3);
+    #endif
+
     int64_t name_hash = LEFT->data;
 
     // Listing
@@ -306,7 +310,7 @@ static int PrintWHILE (TNode *node)
 	//Listing
     PrintA (".%dwhileEnd:", localWhileNum);
 
-    BinArr[jeArgPos] = (int32_t) (ArrLen - jeArgPos - 4);
+    *(int32_t *) (BinArr + jeArgPos) = (int32_t) (ArrLen - jeArgPos - 4);
 
     RmId (ASM_IDS, IdsNum - init_var_num);
 
@@ -367,7 +371,7 @@ static int PrintIF (TNode *node)
     LOG_MSG ("Printing jmp arg (0x%08lx) to [0x%08lx]",
              (int32_t) (ArrLen - (jmpArgPos + 4)), jmpArgPos);
 
-    BinArr[jmpArgPos] = (int32_t) (ArrLen - (jmpArgPos + 4));
+    *(int32_t *)(BinArr + jmpArgPos) = (int32_t) (ArrLen - (jmpArgPos + 4));
 
     return 0;
 }
@@ -616,7 +620,7 @@ static int PrintAssn (TNode *node)
 
     int id_pos = FindId (ASM_IDS, LEFT->data);
 
-    int len = 0;     // if we declare an array
+    int len = 0;     // in case we declare an array
     if (LEFT->right)
         len = (int) LEFT->right->data;
 
@@ -861,7 +865,7 @@ int ToBIN (TNode *root, const char *name, int func_num, FuncId *func_ids)
     DBINT;
 
     int (*testFunc) (void) = (int (*) (void)) (BinArr + 8);
-    // testFunc();
+    testFunc();
 
     LOG_MSG ("test func result = %d", 4);
 

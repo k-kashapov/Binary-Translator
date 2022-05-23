@@ -88,3 +88,5 @@
 #define IDIV_RBX                   (INSTRUCTION { 0xFBF748,    3,       0,    0 })
 
 #define MOV_RSI_RSP                (INSTRUCTION { 0xE68948,    3,       0,    0 })
+
+#define INT_3                      (INSTRUCTION { 0xCC,    1,       0,    0 })
