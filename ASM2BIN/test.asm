@@ -113,6 +113,10 @@ mov rsi, rsp
 
 add rdx, r8
 
+mov rax, 0x3c	; exit (rdi)
+xor rdi, rdi
+syscall
+
 .whileEnd:
 
 section .bss

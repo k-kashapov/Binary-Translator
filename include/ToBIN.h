@@ -3,6 +3,7 @@
 
 #define LOG_NAME "ToBIN"
 #include "Lang.h"
+#include "ELF_Gen.h"
 
 // Found this on github: RustamSubkhankulov/BinaryTranslator
 #ifdef LOGGING

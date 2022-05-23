@@ -669,7 +669,7 @@ static void PrintSTD_OUT (void)
         "    mul rbx\n"
         "    shr rax, %d\n"
         "    mov rdx, rax\n"
-        "    mov WORD [rdi], 0x30303030\n"
+        "    mov WORD [rdi], 0x3030\n"
         "    add rdi, 2\n"
         "    call itoa10\n"
 

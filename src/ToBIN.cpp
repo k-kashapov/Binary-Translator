@@ -775,7 +775,7 @@ static int ReadyBuf (void)
     if (pagesize == -1)
     {
         LOG_ERR ("Pagesize unknown: %d\n", pagesize);
-        return 0;
+        return MEM_ALLOC_ERR;
     }
 
     BinArr = (char *) aligned_alloc (pagesize, pagesize * sizeof (char));
@@ -803,7 +803,8 @@ int ToBIN (TNode *root, const char *name, int func_num, FuncId *func_ids)
 
     DBINT;
 
-    int bufReady = ReadyBuf();
+    int bufErr = ReadyBuf();
+    if (bufErr) return bufErr;
 
     AsmFile = fopen ("Listing.lst", "wt");
     if (!AsmFile)
@@ -828,8 +829,7 @@ int ToBIN (TNode *root, const char *name, int func_num, FuncId *func_ids)
 
     PRERENDER (POP_EVERYTING);
 
-    PrintA ("ret");
-    PrintB (RET_1_BYTE);
+    PRERENDER (EXIT_0);
 
     FuncArr[0].addr = ArrLen;
     PRERENDER (IN_CODE);
@@ -865,6 +865,7 @@ int ToBIN (TNode *root, const char *name, int func_num, FuncId *func_ids)
 
 // ---------------- <Testing> -----------------
 
+/*
     err += mprotect (BinArr, ArrCap, PROT_EXEC | PROT_READ);
     if (err) printf ("Node to asm: errors occured: %d", err);
 
@@ -876,25 +877,26 @@ int ToBIN (TNode *root, const char *name, int func_num, FuncId *func_ids)
     LOG_MSG ("test func result = %d", 4);
 
     mprotect (BinArr, ArrCap, PROT_READ | PROT_WRITE);
+*/
 
 // ---------------- <Finishing> ---------------
 
     DBINT;
 
-    FILE *BinFile = fopen (name, "wt");
+    const char *bin_name = "anek.exe";
+
+    FILE *BinFile = CreateTemplate (bin_name, ArrLen);
     if (!BinFile)
     {
-        printf ("Unable to open asm file; name = %s\n", name);
+        printf ("Unable to open bin file; name = %s\n", name);
         return OPEN_FILE_FAILED;
     }
 
-    Bflush (BinFile);
+    Bflush   (BinFile);
+    CloseEXE (BinFile, bin_name);
 
     if (AsmFile)
         fclose (AsmFile);
-
-    if (BinFile)
-        fclose (BinFile);
 
     free (BinArr);
 

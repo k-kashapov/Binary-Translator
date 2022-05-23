@@ -3,7 +3,7 @@ all: k++
 bin/all: k++
 		 mv k++ /bin/k++
 
-basicFlags = -I include -Wall -Wextra -O2 -g -D LOGGING -no-pie -masm=intel
+basicFlags = -I include -Wall -Wextra -O2 -no-pie -masm=intel
 
 ldLibs = /lib/x86_64-linux-gnu/libc-2.31.so -lm --dynamic-linker /lib64/ld-linux-x86-64.so.2
 
@@ -15,7 +15,7 @@ langFrontDepends =  src/DiffGraph.cpp src/files.cpp src/Ids.cpp src/Lang.cpp    
 			  		src/Lexic.cpp src/Logs.cpp src/SimpleHash.cpp src/Tree.cpp            \
               		src/TreeRead.cpp src/TreeSave.cpp src/Reverse.cpp
 
-langBackDepends = main.cpp src/ToNASM.cpp src/TreeToAsm.cpp src/ToBIN.cpp
+langBackDepends = main.cpp src/ToNASM.cpp src/TreeToAsm.cpp src/ToBIN.cpp src/ELF_Gen.cpp
 
 OBJECTS = $(patsubst %.cpp, %.o, $(langFrontDepends))
 
