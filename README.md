@@ -70,8 +70,11 @@ Current version does not support ```-i``` when using ```-B```. ELF output will a
 # Performance test
 
 The main goal of this project was to increase the execution speed of our language.
-To check the effect, we have created a simple program that calculates 12!.
+
+To check the effect, we have created a simple program that calculates the factorial of 12.
+
 We then run the program 100 000 times and check time of execution using Linux ```time``` tool.
+
 The ELF execution time is then compared with the same task performance on our Processor.
 
 | Architecture | Exec. Time, s |
