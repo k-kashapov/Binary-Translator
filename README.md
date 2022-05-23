@@ -83,3 +83,9 @@ The ELF execution time is then compared with the same task performance on our Pr
 |    x86_64    | 0.011 ± 0.001 |
 
 #### Overall speedup is approximately 1700x
+
+# Acknowledgements
+
+I would like to express my gratitude to [Varnike](https://github.com/Varnike) and [EnikAs](https://github.com/EnikAs) for helping with opcode and ELF generation.
+
+others will be soon...
