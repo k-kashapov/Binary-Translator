@@ -518,8 +518,18 @@ TNode *GetCall (Trans *trans)
         return NULL;
     }
 
-    MovePtr (trans);
-    Require (DOT);
+    for (int func_iter = 0; func_iter < trans->FuncsNum; func_iter++)
+    {
+        if (trans->FuncArr[func_iter].hash == root->left->data)
+        {
+            MovePtr (trans);
+            Require (DOT);
+            return root;
+        }
+    }
+
+    SyntaxErr ("Undeclared function called: |%.*s|\n",
+               root->left->len, root->left->declared);
 
     return root;
 }
