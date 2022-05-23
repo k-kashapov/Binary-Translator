@@ -1,5 +1,7 @@
 # Binary-Translator
-Translator for my language backend that creates x86_64 code
+Translator for my language backend that creates x86_64 code.
+
+The language itself is one of my previous projects. The grammar is based on My Favourite Anecdotes.
 
 # Usage
 
@@ -11,7 +13,9 @@ Use ```$ make lang_no_misc``` to compile version without miscellanious additions
 3) ```-S``` to compile into NASM code
 4) ```-B``` to compile into an x86_64 ELF executable
 
-Grammar:
+Current version does not support ```-i``` when using ```-B```. ELF output will always be called ```anek.exe```.
+
+## Grammar
 
     G     ::= Купил мужик шляпу. OP+ А она ему как раз, господа.
 
@@ -61,4 +65,12 @@ Grammar:
     Print ::= Голос, ID!
 
     ID    ::= [a-zA-Z]+
+
+# Performance test
+
+The main goal of this project was to increase the execution speed of our language.
+To check the effect, we have created a simple program that calculates 12!.
+We then run the program 100 000 times and check time of execution using Linux ```time``` tool.
+The ELF execution time is then compared with the same task performance on our Processor.
+
 
