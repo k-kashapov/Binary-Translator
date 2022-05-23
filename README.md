@@ -88,4 +88,4 @@ The ELF execution time is then compared with the same task performance on our Pr
 
 I would like to express my gratitude to [Varnike](https://github.com/Varnike) and [EnikAs](https://github.com/EnikAs) for helping with opcode and ELF generation.
 
-Additional thanks to [Rustam](https://github.com/RustamSubkhankulov)
+Additional thanks to [Rustam](https://github.com/RustamSubkhankulov) for reading this README.
