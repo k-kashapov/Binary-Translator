@@ -1,6 +1,16 @@
 # Binary-Translator
 Translator for my language backend that creates x86_64 code
 
+# Usage
+
+Use ```$ make lang_no_misc``` to compile version without miscellanious additions (producing tree image and saving tree to file).
+
+## Flags
+1) ```-i``` specify input file
+2) ```-o``` specify output file
+3) ```-S``` to compile into NASM code
+4) ```-B``` to compile into an x86_64 ELF executable
+
 Grammar:
 
     G     ::= Купил мужик шляпу. OP+ А она ему как раз, господа.
