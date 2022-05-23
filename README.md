@@ -1,7 +1,7 @@
 # Binary-Translator
 Translator for my language backend that creates x86_64 code.
 
-The language itself is one of my previous projects. The grammar is based on My Favourite Anecdotes.
+The language itself is [one of my previous projects](https://github.com/k-kashapov/lang). The grammar is based on My Favourite Anecdotes.
 
 # Usage
 
@@ -12,6 +12,7 @@ Use ```$ make lang_no_misc``` to compile version without miscellanious additions
 2) ```-o``` specify output file
 3) ```-S``` to compile into NASM code
 4) ```-B``` to compile into an x86_64 ELF executable
+5) if no flags other than ```-i``` and ```-o``` used, the code is compiled into [my Assembly language](https://github.com/k-kashapov/processor).
 
 Current version does not support ```-i``` when using ```-B```. ELF output will always be called ```anek.exe```.
 
