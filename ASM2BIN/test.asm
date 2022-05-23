@@ -111,6 +111,8 @@ sar rbx, 9
 
 mov rsi, rsp
 
+add rdx, r8
+
 .whileEnd:
 
 section .bss

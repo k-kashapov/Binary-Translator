@@ -5,336 +5,458 @@
 00000021:		ret
 00000022:		IN_CODE
 00000081:		OUT_CODE
-00000154:		POW_CODE
-000001ac:		f8991: ; def Линейная
-000001ac:		push rbp ; create stack frame
-000001ad:		mov rbp, rsp
-
-000001b0:		sub rsp, 16 ; jump over parameters
-
-000001b7:		; if statement
-000001b7:		; JE
-000001b7:		mov rax, [rbp - 16] ; ЛошедьБ
-000001be:		mov rbx, rax ; save left to rbx
-000001c1:		mov rax, 0 ; const value << 9
-000001c6:		cmp rbx, rax
-000001c9:		JE .0cmp
-
-000001cf:		xor rax, rax ; false
-000001d2:		jmp .0cmpEnd
-
-000001d7:		.0cmp:
-000001d7:		mov rax, 1 ; true
-
-000001dc:		.0cmpEnd:
-
-000001dc:		test rax, rax
-000001df:		je .0false
-
-000001e5:		; if statement
-000001e5:		; JE
-000001e5:		mov rax, [rbp - 8] ; ЛошедьК
-000001ec:		mov rbx, rax ; save left to rbx
-000001ef:		mov rax, 0 ; const value << 9
-000001f4:		cmp rbx, rax
-000001f7:		JE .1cmp
-
-000001fd:		xor rax, rax ; false
-00000200:		jmp .1cmpEnd
-
-00000205:		.1cmp:
-00000205:		mov rax, 1 ; true
-
-0000020a:		.1cmpEnd:
-
-0000020a:		test rax, rax
-0000020d:		je .1false
-
-00000213:		mov rax, 0 ; const value << 9
-00000218:		sub rsp, 8 ; declared Количество; [24; 32]
-0000021f:		mov [rbp - 24], rax ; Количество = rax
-00000226:		
-00000226:		mov rax, 51200 ; const value << 9
-0000022b:		mov [rbp - 24], rax ; Количество = rax
-00000232:		
-00000232:		mov rax, [rbp - 24] ; Количество
-00000239:		call out
-0000023e:		
-0000023e:		jmp .1enif
-
-00000243:		.1false:
-
-00000243:		mov rax, 0 ; const value << 9
-00000248:		mov [rbp - 32], rax ; Количество = rax
-0000024f:		
-0000024f:		mov rax, 512 ; const value << 9
-00000254:		mov [rbp - 24], rax ; Количество = rax
-0000025b:		
-0000025b:		mov rax, [rbp - 24] ; Количество
-00000262:		call out
-00000267:		
-00000267:		mov rax, 0 ; const value << 9
-0000026c:		sub rsp, 8 ; declared Нулёвочка; [32; 40]
-00000273:		mov [rbp - 32], rax ; Нулёвочка = rax
-0000027a:		
-0000027a:		mov rax, 0 ; const value << 9
-0000027f:		mov [rbp - 32], rax ; Нулёвочка = rax
-00000286:		
-00000286:		mov rax, [rbp - 32] ; Нулёвочка
-0000028d:		call out
-00000292:		
-00000292:		.1enif:
-
-00000292:		
-00000292:		jmp .0enif
-
-00000297:		.0false:
-
-00000297:		; if statement
-00000297:		; JE
-00000297:		mov rax, [rbp - 8] ; ЛошедьК
-0000029e:		mov rbx, rax ; save left to rbx
-000002a1:		mov rax, 0 ; const value << 9
-000002a6:		cmp rbx, rax
-000002a9:		JE .2cmp
-
-000002af:		xor rax, rax ; false
-000002b2:		jmp .2cmpEnd
-
-000002b7:		.2cmp:
-000002b7:		mov rax, 1 ; true
-
-000002bc:		.2cmpEnd:
-
-000002bc:		test rax, rax
-000002bf:		je .2false
-
-000002c5:		mov rax, 0 ; const value << 9
-000002ca:		sub rsp, 8 ; declared Жопа; [40; 48]
-000002d1:		mov [rbp - 40], rax ; Жопа = rax
-000002d8:		
-000002d8:		mov rax, 512 ; const value << 9
-000002dd:		push rax
-
-000002de:		mov rax, 0 ; const value << 9
-000002e3:		pop rbx
-
-000002e4:		SUB rax, rbx
-
-000002e7:		mov [rbp - 40], rax ; Жопа = rax
-000002ee:		
-000002ee:		mov rax, [rbp - 40] ; Жопа
-000002f5:		call out
-000002fa:		
-000002fa:		jmp .2enif
-
-000002ff:		.2false:
-
-000002ff:		mov rax, 0 ; const value << 9
-00000304:		mov [rbp - 32], rax ; Количество = rax
-0000030b:		
-0000030b:		mov rax, 512 ; const value << 9
-00000310:		mov [rbp - 24], rax ; Количество = rax
-00000317:		
-00000317:		mov rax, [rbp - 24] ; Количество
-0000031e:		call out
-00000323:		
-00000323:		mov rax, 0 ; const value << 9
-00000328:		sub rsp, 8 ; declared Результат; [48; 56]
-0000032f:		mov [rbp - 48], rax ; Результат = rax
-00000336:		
-00000336:		mov rax, [rbp - 8] ; ЛошедьК
-0000033d:		push rax
+00000151:		POW_CODE
+000001a9:		f8991: ; def Линейная
+000001a9:		push rbp ; create stack frame
+000001aa:		mov rbp, rsp
+
+000001ad:		sub rsp, 16 ; jump over parameters
+
+000001b4:		; if statement
+000001b4:		; JE
+000001b4:		mov rax, [rbp - 16] ; ЛошедьБ
+000001bb:		mov rbx, rax ; save left to rbx
+000001be:		mov rax, 0 ; const value << 9
+000001c3:		cmp rbx, rax
+000001c6:		JE .0cmp
+
+000001cc:		xor rax, rax ; false
+000001cf:		jmp .0cmpEnd
+
+000001d4:		.0cmp:
+000001d4:		mov rax, 1 ; true
+
+000001d9:		.0cmpEnd:
+
+000001d9:		test rax, rax
+000001dc:		je .0false
+
+000001e2:		; if statement
+000001e2:		; JE
+000001e2:		mov rax, [rbp - 8] ; ЛошедьК
+000001e9:		mov rbx, rax ; save left to rbx
+000001ec:		mov rax, 0 ; const value << 9
+000001f1:		cmp rbx, rax
+000001f4:		JE .1cmp
+
+000001fa:		xor rax, rax ; false
+000001fd:		jmp .1cmpEnd
+
+00000202:		.1cmp:
+00000202:		mov rax, 1 ; true
+
+00000207:		.1cmpEnd:
+
+00000207:		test rax, rax
+0000020a:		je .1false
+
+00000210:		mov rax, 0 ; const value << 9
+00000215:		sub rsp, 8 ; declared Количество; [24; 32]
+0000021c:		mov [rbp - 24], rax ; Количество = rax
+00000223:		
+00000223:		mov rax, 51200 ; const value << 9
+00000228:		mov [rbp - 24], rax ; Количество = rax
+0000022f:		
+0000022f:		mov rax, [rbp - 24] ; Количество
+00000236:		call out
+0000023b:		
+0000023b:		jmp .1enif
+
+00000240:		.1false:
+
+00000240:		mov rax, 0 ; const value << 9
+00000245:		mov [rbp - 32], rax ; Количество = rax
+0000024c:		
+0000024c:		mov rax, 512 ; const value << 9
+00000251:		mov [rbp - 24], rax ; Количество = rax
+00000258:		
+00000258:		mov rax, [rbp - 24] ; Количество
+0000025f:		call out
+00000264:		
+00000264:		mov rax, 0 ; const value << 9
+00000269:		sub rsp, 8 ; declared Нулёвочка; [32; 40]
+00000270:		mov [rbp - 32], rax ; Нулёвочка = rax
+00000277:		
+00000277:		mov rax, 0 ; const value << 9
+0000027c:		mov [rbp - 32], rax ; Нулёвочка = rax
+00000283:		
+00000283:		mov rax, [rbp - 32] ; Нулёвочка
+0000028a:		call out
+0000028f:		
+0000028f:		.1enif:
+
+0000028f:		
+0000028f:		jmp .0enif
+
+00000294:		.0false:
+
+00000294:		; if statement
+00000294:		; JE
+00000294:		mov rax, [rbp - 8] ; ЛошедьК
+0000029b:		mov rbx, rax ; save left to rbx
+0000029e:		mov rax, 0 ; const value << 9
+000002a3:		cmp rbx, rax
+000002a6:		JE .2cmp
+
+000002ac:		xor rax, rax ; false
+000002af:		jmp .2cmpEnd
+
+000002b4:		.2cmp:
+000002b4:		mov rax, 1 ; true
+
+000002b9:		.2cmpEnd:
+
+000002b9:		test rax, rax
+000002bc:		je .2false
+
+000002c2:		mov rax, 0 ; const value << 9
+000002c7:		sub rsp, 8 ; declared Жопа; [40; 48]
+000002ce:		mov [rbp - 40], rax ; Жопа = rax
+000002d5:		
+000002d5:		mov rax, 512 ; const value << 9
+000002da:		push rax
+
+000002db:		mov rax, 0 ; const value << 9
+000002e0:		pop rbx
+
+000002e1:		SUB rax, rbx
+
+000002e4:		mov [rbp - 40], rax ; Жопа = rax
+000002eb:		
+000002eb:		mov rax, [rbp - 40] ; Жопа
+000002f2:		call out
+000002f7:		
+000002f7:		jmp .2enif
+
+000002fc:		.2false:
+
+000002fc:		mov rax, 0 ; const value << 9
+00000301:		mov [rbp - 32], rax ; Количество = rax
+00000308:		
+00000308:		mov rax, 512 ; const value << 9
+0000030d:		mov [rbp - 24], rax ; Количество = rax
+00000314:		
+00000314:		mov rax, [rbp - 24] ; Количество
+0000031b:		call out
+00000320:		
+00000320:		mov rax, 0 ; const value << 9
+00000325:		sub rsp, 8 ; declared Результат; [48; 56]
+0000032c:		mov [rbp - 48], rax ; Результат = rax
+00000333:		
+00000333:		mov rax, [rbp - 8] ; ЛошедьК
+0000033a:		push rax
 
-0000033e:		mov rax, [rbp - 16] ; ЛошедьБ
-00000345:		pop rbx
+0000033b:		mov rax, [rbp - 16] ; ЛошедьБ
+00000342:		pop rbx
 
-00000346:		sar rbx, 9 ; pseudo-float emul
-0000034a:		cqo
+00000343:		sar rbx, 9 ; pseudo-float emul
+00000347:		cqo
 
-0000034c:		idiv rbx
+00000349:		idiv rbx
 
-0000034f:		push rax
+0000034c:		push rax
 
-00000350:		mov rax, 0 ; const value << 9
-00000355:		pop rbx
-
-00000356:		SUB rax, rbx
-
-00000359:		mov [rbp - 48], rax ; Результат = rax
-00000360:		
-00000360:		mov rax, [rbp - 48] ; Результат
-00000367:		call out
-0000036c:		
-0000036c:		.2enif:
-
-0000036c:		
-0000036c:		.0enif:
-
-0000036c:		
-0000036c:		mov rax, 0 ; const value << 9
-00000371:		mov rsp, rbp
-00000374:		pop rbp ; stack frame return
-
-00000375:		ret
-00000376:		
-00000376:		
-00000376:		f7938: ; def Квадрат
-00000376:		push rbp ; create stack frame
-00000377:		mov rbp, rsp
-
-0000037a:		sub rsp, 24 ; jump over parameters
-
-00000381:		; if statement
-00000381:		; JE
-00000381:		mov rax, [rbp - 8] ; ЛошедьА
-00000388:		mov rbx, rax ; save left to rbx
-0000038b:		mov rax, 0 ; const value << 9
-00000390:		cmp rbx, rax
-00000393:		JE .3cmp
-
-00000399:		xor rax, rax ; false
-0000039c:		jmp .3cmpEnd
-
-000003a1:		.3cmp:
-000003a1:		mov rax, 1 ; true
-
-000003a6:		.3cmpEnd:
-
-000003a6:		test rax, rax
-000003a9:		je .3false
-
-000003af:		; call args
-000003af:		mov rax, [rbp - 16] ; ЛошедьБ
-000003b6:		mov [rsp - 24], rax
-000003be:		mov rax, [rbp - 24] ; ЛошедьВ
-000003c5:		mov [rsp - 32], rax
-000003ce:		call f8991 ; call Линейная
-000003d3:		mov [rbp - 8], rax ; ЛошедьА = rax
-000003da:		
-000003da:		jmp .3enif
-
-000003df:		.3false:
-
-000003df:		mov rax, 0 ; const value << 9
-000003e4:		sub rsp, 8 ; declared Дискриминант; [32; 40]
-000003eb:		mov [rbp - 32], rax ; Дискриминант = rax
-000003f2:		
-000003f2:		mov rax, [rbp - 24] ; ЛошедьВ
-000003f9:		push rax
-
-000003fa:		mov rax, [rbp - 8] ; ЛошедьА
-00000401:		pop rbx
-
-00000402:		imul rbx
-
-00000405:		sar rax, 9 ; pseudo-float emul
-00000409:		push rax
-
-0000040a:		mov rax, 2048 ; const value << 9
-0000040f:		pop rbx
-
-00000410:		imul rbx
-
-00000413:		sar rax, 9 ; pseudo-float emul
-00000417:		push rax
-
-00000418:		mov rax, [rbp - 16] ; ЛошедьБ
-0000041f:		push rax
-
-00000420:		mov rax, [rbp - 16] ; ЛошедьБ
-00000427:		pop rbx
-
-00000428:		imul rbx
-
-0000042b:		sar rax, 9 ; pseudo-float emul
-0000042f:		pop rbx
-
-00000430:		SUB rax, rbx
-
-00000433:		mov [rbp - 32], rax ; Дискриминант = rax
-0000043a:		
-0000043a:		mov rax, [rbp - 32] ; Дискриминант
-00000441:		call out
-00000446:		
-00000446:		; if statement
-00000446:		; JGE
-00000446:		mov rax, [rbp - 32] ; Дискриминант
-0000044d:		mov rbx, rax ; save left to rbx
-00000450:		mov rax, 0 ; const value << 9
-00000455:		cmp rbx, rax
-00000458:		JGE .4cmp
-
-0000045e:		xor rax, rax ; false
-00000461:		jmp .4cmpEnd
-
-00000466:		.4cmp:
-00000466:		mov rax, 1 ; true
-
-0000046b:		.4cmpEnd:
-
-0000046b:		test rax, rax
-0000046e:		je .4false
-
-00000474:		mov rax, 0 ; const value << 9
-00000479:		sub rsp, 8 ; declared Количество; [40; 48]
-00000480:		mov [rbp - 40], rax ; Количество = rax
-00000487:		
-00000487:		mov rax, 1024 ; const value << 9
-0000048c:		mov [rbp - 40], rax ; Количество = rax
-00000493:		
-00000493:		mov rax, [rbp - 40] ; Количество
-0000049a:		call out
-0000049f:		
-0000049f:		mov rax, 0 ; const value << 9
-000004a4:		sub rsp, 8 ; declared Корень; [48; 56]
-000004ab:		mov [rbp - 48], rax ; Корень = rax
-000004b2:		
-000004b2:		mov rax, [rbp - 32] ; Дискриминант
-000004c1:		mov rax, 1024 ; const value << 9
-000004c6:		push rax
-
-000004c7:		mov rax, 512 ; const value << 9
-000004cc:		pop rbx
-
-000004cd:		sar rbx, 9 ; pseudo-float emul
-000004d1:		cqo
-
-000004d3:		idiv rbx
-
-000004de:		call pow
-000004e3:		mov [rbp - 48], rax ; Корень = rax
-000004ea:		
-000004ea:		mov rax, 0 ; const value << 9
-000004ef:		sub rsp, 16 ; declared Корни; [56; 72]
-000004f6:		mov [rbp - 64], rax ; Корни = rax
-000004fd:		
-000004fd:		mov rax, 1024 ; const value << 9
-00000502:		push rax
-
-00000503:		mov rax, [rbp - 8] ; ЛошедьА
-0000050a:		pop rbx
-
-0000050b:		imul rbx
-
-0000050e:		sar rax, 9 ; pseudo-float emul
-00000512:		push rax
-
-00000513:		mov rax, [rbp - 16] ; ЛошедьБ
-0000051a:		push rax
-
-0000051b:		mov rax, [rbp - 48] ; Корень
-00000522:		pop rbx
-
-00000523:		SUB rax, rbx
-
-00000526:		pop rbx
-
-00000527:		sar rbx, 9 ; pseudo-float emul
-0000052b:		cqo
-
-0000052d:		idiv rbx
-
-00000530:		mov [rbp - 56], rax ; Корни = rax
-00000537:		
-00000537:
+0000034d:		mov rax, 0 ; const value << 9
+00000352:		pop rbx
+
+00000353:		SUB rax, rbx
+
+00000356:		mov [rbp - 48], rax ; Результат = rax
+0000035d:		
+0000035d:		mov rax, [rbp - 48] ; Результат
+00000364:		call out
+00000369:		
+00000369:		.2enif:
+
+00000369:		
+00000369:		.0enif:
+
+00000369:		
+00000369:		mov rax, 0 ; const value << 9
+0000036e:		mov rsp, rbp
+00000371:		pop rbp ; stack frame return
+
+00000372:		ret
+00000373:		
+00000373:		
+00000373:		f7938: ; def Квадрат
+00000373:		push rbp ; create stack frame
+00000374:		mov rbp, rsp
+
+00000377:		sub rsp, 24 ; jump over parameters
+
+0000037e:		; if statement
+0000037e:		; JE
+0000037e:		mov rax, [rbp - 8] ; ЛошедьА
+00000385:		mov rbx, rax ; save left to rbx
+00000388:		mov rax, 0 ; const value << 9
+0000038d:		cmp rbx, rax
+00000390:		JE .3cmp
+
+00000396:		xor rax, rax ; false
+00000399:		jmp .3cmpEnd
+
+0000039e:		.3cmp:
+0000039e:		mov rax, 1 ; true
+
+000003a3:		.3cmpEnd:
+
+000003a3:		test rax, rax
+000003a6:		je .3false
+
+000003ac:		; call args
+000003ac:		mov rax, [rbp - 16] ; ЛошедьБ
+000003b3:		mov [rsp - 24], rax
+000003bb:		mov rax, [rbp - 24] ; ЛошедьВ
+000003c2:		mov [rsp - 32], rax
+000003cb:		call f8991 ; call Линейная
+000003d0:		mov [rbp - 8], rax ; ЛошедьА = rax
+000003d7:		
+000003d7:		jmp .3enif
+
+000003dc:		.3false:
+
+000003dc:		mov rax, 0 ; const value << 9
+000003e1:		sub rsp, 8 ; declared Дискриминант; [32; 40]
+000003e8:		mov [rbp - 32], rax ; Дискриминант = rax
+000003ef:		
+000003ef:		mov rax, [rbp - 24] ; ЛошедьВ
+000003f6:		push rax
+
+000003f7:		mov rax, [rbp - 8] ; ЛошедьА
+000003fe:		pop rbx
+
+000003ff:		imul rbx
+
+00000402:		sar rax, 9 ; pseudo-float emul
+00000406:		push rax
+
+00000407:		mov rax, 2048 ; const value << 9
+0000040c:		pop rbx
+
+0000040d:		imul rbx
+
+00000410:		sar rax, 9 ; pseudo-float emul
+00000414:		push rax
+
+00000415:		mov rax, [rbp - 16] ; ЛошедьБ
+0000041c:		push rax
+
+0000041d:		mov rax, [rbp - 16] ; ЛошедьБ
+00000424:		pop rbx
+
+00000425:		imul rbx
+
+00000428:		sar rax, 9 ; pseudo-float emul
+0000042c:		pop rbx
+
+0000042d:		SUB rax, rbx
+
+00000430:		mov [rbp - 32], rax ; Дискриминант = rax
+00000437:		
+00000437:		mov rax, [rbp - 32] ; Дискриминант
+0000043e:		call out
+00000443:		
+00000443:		; if statement
+00000443:		; JGE
+00000443:		mov rax, [rbp - 32] ; Дискриминант
+0000044a:		mov rbx, rax ; save left to rbx
+0000044d:		mov rax, 0 ; const value << 9
+00000452:		cmp rbx, rax
+00000455:		JGE .4cmp
+
+0000045b:		xor rax, rax ; false
+0000045e:		jmp .4cmpEnd
+
+00000463:		.4cmp:
+00000463:		mov rax, 1 ; true
+
+00000468:		.4cmpEnd:
+
+00000468:		test rax, rax
+0000046b:		je .4false
+
+00000471:		mov rax, 0 ; const value << 9
+00000476:		sub rsp, 8 ; declared Количество; [40; 48]
+0000047d:		mov [rbp - 40], rax ; Количество = rax
+00000484:		
+00000484:		mov rax, 1024 ; const value << 9
+00000489:		mov [rbp - 40], rax ; Количество = rax
+00000490:		
+00000490:		mov rax, [rbp - 40] ; Количество
+00000497:		call out
+0000049c:		
+0000049c:		mov rax, 0 ; const value << 9
+000004a1:		sub rsp, 8 ; declared Корень; [48; 56]
+000004a8:		mov [rbp - 48], rax ; Корень = rax
+000004af:		
+000004af:		mov rax, [rbp - 32] ; Дискриминант
+000004be:		mov rax, 1024 ; const value << 9
+000004c3:		push rax
+
+000004c4:		mov rax, 512 ; const value << 9
+000004c9:		pop rbx
+
+000004ca:		sar rbx, 9 ; pseudo-float emul
+000004ce:		cqo
+
+000004d0:		idiv rbx
+
+000004db:		call pow
+000004e0:		mov [rbp - 48], rax ; Корень = rax
+000004e7:		
+000004e7:		mov rax, 0 ; const value << 9
+000004ec:		sub rsp, 16 ; declared Корни; [56; 72]
+000004f3:		mov [rbp - 64], rax ; Корни = rax
+000004fa:		
+000004fa:		mov rax, 1024 ; const value << 9
+000004ff:		push rax
+
+00000500:		mov rax, [rbp - 8] ; ЛошедьА
+00000507:		pop rbx
+
+00000508:		imul rbx
+
+0000050b:		sar rax, 9 ; pseudo-float emul
+0000050f:		push rax
+
+00000510:		mov rax, [rbp - 16] ; ЛошедьБ
+00000517:		push rax
+
+00000518:		mov rax, [rbp - 48] ; Корень
+0000051f:		pop rbx
+
+00000520:		SUB rax, rbx
+
+00000523:		pop rbx
+
+00000524:		sar rbx, 9 ; pseudo-float emul
+00000528:		cqo
+
+0000052a:		idiv rbx
+
+0000052d:		mov [rbp - 56], rax ; Корни = rax
+00000534:		
+00000534:		mov rax, 1024 ; const value << 9
+00000539:		push rax
+
+0000053a:		mov rax, [rbp - 8] ; ЛошедьА
+00000541:		pop rbx
+
+00000542:		imul rbx
+
+00000545:		sar rax, 9 ; pseudo-float emul
+00000549:		push rax
+
+0000054a:		mov rax, [rbp - 16] ; ЛошедьБ
+00000551:		push rax
+
+00000552:		mov rax, [rbp - 48] ; Корень
+00000559:		pop rbx
+
+0000055a:		ADD rax, rbx
+
+0000055d:		push rax
+
+0000055e:		mov rax, 0 ; const value << 9
+00000563:		pop rbx
+
+00000564:		SUB rax, rbx
+
+00000567:		pop rbx
+
+00000568:		sar rbx, 9 ; pseudo-float emul
+0000056c:		cqo
+
+0000056e:		idiv rbx
+
+00000571:		mov [rbp - 64], rax ; Корни = rax
+00000578:		
+00000578:		mov rax, [rbp - 56] ; Корни
+0000057f:		call out
+00000584:		
+00000584:		mov rax, [rbp - 64] ; Корни
+0000058b:		call out
+00000590:		
+00000590:		jmp .4enif
+
+00000595:		.4false:
+
+00000595:		mov rax, 0 ; const value << 9
+0000059a:		sub rsp, 8 ; declared Жопа; [72; 80]
+000005a1:		mov [rbp - 72], rax ; Жопа = rax
+000005a8:		
+000005a8:		mov rax, 512 ; const value << 9
+000005ad:		push rax
+
+000005ae:		mov rax, 0 ; const value << 9
+000005b3:		pop rbx
+
+000005b4:		SUB rax, rbx
+
+000005b7:		mov [rbp - 72], rax ; Жопа = rax
+000005be:		
+000005be:		mov rax, [rbp - 72] ; Жопа
+000005c5:		call out
+000005ca:		
+000005ca:		.4enif:
+
+000005ca:		
+000005ca:		.3enif:
+
+000005ca:		
+000005ca:		mov rax, 0 ; const value << 9
+000005cf:		mov rsp, rbp
+000005d2:		pop rbp ; stack frame return
+
+000005d3:		ret
+000005d4:		
+000005d4:		
+000005d4:		f1058: ; def main
+000005d4:		push rbp ; create stack frame
+000005d5:		mov rbp, rsp
+
+000005d8:		sub rsp, 0 ; jump over parameters
+
+000005df:		mov rax, 0 ; const value << 9
+000005e4:		sub rsp, 8 ; declared Костыль; [8; 16]
+000005eb:		mov [rbp - 8], rax ; Костыль = rax
+000005f2:		
+000005f2:		mov rax, 0 ; const value << 9
+000005f7:		sub rsp, 8 ; declared ЛошедьА; [16; 24]
+000005fe:		mov [rbp - 16], rax ; ЛошедьА = rax
+00000605:		
+00000605:		mov rax, 0 ; const value << 9
+0000060a:		sub rsp, 8 ; declared ЛошедьБ; [24; 32]
+00000611:		mov [rbp - 24], rax ; ЛошедьБ = rax
+00000618:		
+00000618:		mov rax, 0 ; const value << 9
+0000061d:		sub rsp, 8 ; declared ЛошедьВ; [32; 40]
+00000624:		mov [rbp - 32], rax ; ЛошедьВ = rax
+0000062b:		
+0000062b:		call in
+00000630:		mov [rbp - 16], rax ; ЛошедьА = rax
+00000637:		
+00000637:		call in
+0000063c:		mov [rbp - 24], rax ; ЛошедьБ = rax
+00000643:		
+00000643:		call in
+00000648:		mov [rbp - 32], rax ; ЛошедьВ = rax
+0000064f:		
+0000064f:		; call args
+0000064f:		mov rax, [rbp - 16] ; ЛошедьА
+00000656:		mov [rsp - 24], rax
+0000065e:		mov rax, [rbp - 24] ; ЛошедьБ
+00000665:		mov [rsp - 32], rax
+0000066d:		mov rax, [rbp - 32] ; ЛошедьВ
+00000674:		mov [rsp - 40], rax
+0000067d:		call f7938 ; call Квадрат
+00000682:		mov [rbp - 8], rax ; Костыль = rax
+00000689:		
+00000689:		mov rax, 0 ; const value << 9
+0000068e:		mov rsp, rbp
+00000691:		pop rbp ; stack frame return
+
+00000692:		ret
+00000693:		
+00000693:		

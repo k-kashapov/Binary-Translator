@@ -237,7 +237,10 @@ static int PrintIN (TNode *node)
 
     IN_USED = 1;
 
-    PrintA ("call IN");
+    PrintA ("call in");
+
+    LOG_MSG ("Printing IN call from (0x%08lx) to (0x%08lx), arg = (0x%08lx)",
+             ArrLen, FuncArr[0].addr, FuncArr[0].addr - ArrLen - 5);
 
     PrintB (CALL_NEAR_4_BYTE (FuncArr[0].addr - ArrLen - 5));
 
@@ -254,6 +257,9 @@ static int PrintOUT (TNode *node)
 
     // Listing
     PrintA ("call out");
+
+    LOG_MSG ("Printing OUT call from (0x%08lx) to (0x%08lx), arg = (0x%08lx)",
+             ArrLen, FuncArr[1].addr, FuncArr[1].addr - ArrLen - 5);
 
     PrintB (CALL_NEAR_4_BYTE (FuncArr[1].addr - ArrLen - 5));
 
