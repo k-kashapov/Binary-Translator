@@ -69,7 +69,7 @@ Current version does not support ```-i``` when using ```-B```. ELF output will a
 
 # Performance test
 
-The main goal of this project was to increase the execution speed of our language.
+The main goal of this project was to increase the execution speed of programs written in our language.
 
 To check the effect, we have created a simple program that calculates the factorial of 12.
 
@@ -88,4 +88,4 @@ The ELF execution time is then compared with the same task performance on our Pr
 
 I would like to express my gratitude to [Varnike](https://github.com/Varnike) and [EnikAs](https://github.com/EnikAs) for helping with opcode and ELF generation.
 
-others will be soon...
+Additional thanks to [Rustam](https://github.com/RustamSubkhankulov)
