@@ -74,4 +74,9 @@ To check the effect, we have created a simple program that calculates 12!.
 We then run the program 100 000 times and check time of execution using Linux ```time``` tool.
 The ELF execution time is then compared with the same task performance on our Processor.
 
+| Architecture | Exec. Time, s |
+|:------------:|:-------------:|
+|   Processor  |  18.50 ±0.37  |
+|    x86_64    | 0.011 ± 0.001 |
 
+#### Overall speedup is approximately 1700x
