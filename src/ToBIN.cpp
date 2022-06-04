@@ -273,7 +273,7 @@ static int PrintWHILE (TNode *node)
     int    init_var_num = IdsNum;
 
     // Listing
-    MOV_SS ("r12", "rsp ; save rsp to rcx");
+    MOV_SS ("r12", "rsp ; save rsp to r12");
 
     PrintB (MOV_R12_RSP);
 
@@ -311,12 +311,15 @@ static int PrintWHILE (TNode *node)
 	//Listing
     PrintA ("jmp .%dwhile", localWhileNum);
 
-    PrintB (JMP_4_BYTE (whileStartAddr - (ArrLen + 5)));
+    const int ARG_LEN = 4;
+    const int OP_LEN  = 4;
+
+    PrintB (JMP_4_BYTE (whileStartAddr - (ArrLen + OP_LEN + ARG_LEN)));
 
 	//Listing
     PrintA (".%dwhileEnd:", localWhileNum);
 
-    *(int32_t *) (BinArr + jeArgPos) = (int32_t) (ArrLen - jeArgPos - 4);
+    *(int32_t *) (BinArr + jeArgPos) = (int32_t) (ArrLen - jeArgPos - ARG_LEN);
 
     RmId (ASM_IDS, IdsNum - init_var_num);
 
