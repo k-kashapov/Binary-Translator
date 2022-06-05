@@ -23,10 +23,10 @@ static const unsigned char POP_EVERYTING[] =
         0x5B        // push rbx
     };
 
-static const unsigned char EXIT_0[] =
+static const unsigned char EXIT[] =
     {
+        0x48, 0x89, 0xc7,             // mov rdi, rax        
         0xB8, 0x3C, 0x00, 0x00, 0x00, // mov eax, 0x3c
-        0x48, 0x31, 0xFF,             // xor rdi, rdi
         0x0F, 0x05                    // syscall
     };
 

@@ -830,7 +830,7 @@ int ToBIN (TNode *root, const char *name, int func_num, FuncId *func_ids)
 
     PRERENDER (POP_EVERYTING);
 
-    PRERENDER (EXIT_0);
+    PRERENDER (EXIT);
 
     FuncArr[0].addr = ArrLen;
     PRERENDER (IN_CODE);
@@ -841,7 +841,7 @@ int ToBIN (TNode *root, const char *name, int func_num, FuncId *func_ids)
     FuncArr[2].addr = ArrLen;
     PRERENDER (POW_CODE);
 
-    printf ("written prerenders to file, bytes: %ld\n", ArrLen);
+    LOG_MSG ("written prerenders to file, bytes: %ld\n", ArrLen);
 
     int err = NodeToAsm (root);
 
