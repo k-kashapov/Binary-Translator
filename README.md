@@ -162,6 +162,97 @@ static int PrintID (TNode *node)
 ```
 </details>
 
+# Command generation details
+
+For each command used in the resulting program there's a defined INSTRUCTION structure in file
+```include/NASM_BIN_TABLE.h```.
+
+The structure contains opcode itself, opcode length, argument
+and argument length.
+
+For example:
+
+```
+//      MNEMO                                     OPCODE     LEN  ARG_LEN   ARG
+#define SUB_RSP_1_BYTE(arg_)       (INSTRUCTION { 0xEC8348,    3,       1, arg_ })
+```
+
+This structure is then pasted into opcodes buffer.
+
+### We will now give detailed explanations of each node type translation
+
+* [General](#general)
+* [Variables](#variables)
+* [Operators](#operators)
+* [CALL and RET](#call-and-ret)
+
+## General
+
+* All variables are stored in stack. Space in stack between ```RBP``` and ```RSP```
+  is the stack frame. 
+
+* All operation results are stored in ```RAX```.
+
+* All arithmetic operations support _pseudo-float_ calculations. We shift each integer value
+  9 bits left. This gives us precision of around 0.002.
+
+* All integers are signed.
+
+## Variables
+
+The language standart we use does not require variable declaration before usage. However, in the
+language front-end implementation we treat undeclared variables as an error.
+
+
+This results in a variable being initialized with zero, whenever it is seen for the 
+first time in language tree.
+
+When a variable is used in code, it's value is moved to ```RAX``` register.
+
+## CALL and RET
+
+To call a function, we do the following steps:
+
+1)  Put call arguments to stack.
+    Contrast to FASTCALL and CDECL calling conventions, we push argument values relative to
+    ```RSP``` with a negative offset.
+
+<details>
+
+<summary>More details</summary>
+
+Let's say, we want to call a function ```int func (int first, int second)```. It has 2 parameters.
+
+This is how stack looks like before calling:
+                                                                                                                                                                                                    
+|     Offset    |        0x0000       |  -0x0008   |   -0x0010  | -0x0018 | -0x0020 | -0x0028 | -0x0030 | -0x0038 |
+|:-------------:|:-------------------:|:----------:|:----------:|:-------:|:-------:|:-------:|:-------:|:-------:|
+| Stack example |        0x1234       |   0x0042   |   0x00CE   |  0x0000 |  0x0000 |  0x0000 |  0x0000 |  0x0000 |
+|  Explanation  | Old ```RBP``` value | Variable A | Variable B | Garbage | Garbage | Garbage | Garbage | Garbage |
+|   Registers   |      ```RBP```      |            |  ```RSP``` |         |         |         |         |         |
+
+We then call ```func (A, B)```.
+
+Function parameters will be placed into ```[RSP - 0x10 - 0x8 * N]```, where ```N``` is the
+parameter number.
+
+So, after all arguments are passed, the stack would look like this:
+
+|     Offset    |        0x0000       |  -0x0008   |   -0x0010  | -0x0018 | -0x0020 |        -0x0028         |        -0x0030         | -0x0038 |
+|:-------------:|:-------------------:|:----------:|:----------:|:-------:|:-------:|:----------------------:|:----------------------:|:-------:|
+| Stack example |        0x1234       |   0x0042   |   0x00CE   |  0x0000 |  0x0000 |         0x0042         |         0x00CE         |  0x0000 |
+|  Explanation  | Old ```RBP``` value | Variable A | Variable B | Garbage | Garbage | Parameter = Variable A | Parameter = Variable B | Garbage |
+|   Registers   |      ```RBP```      |            |  ```RSP``` |         |         | ```RSP - 0x10 - 0x8``` | ```RSP - 0x10 - 0x10```|         |
+
+
+</details>
+
+
+## Operators
+
+operators
+
+
 # Performance test
 
 The main goal of this project was to increase the execution speed of programs written in our language.
