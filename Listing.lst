@@ -1,55 +1,46 @@
-00000000:		const_for_pow: dq 512
-00000008:		PUSH_EVERYTING
-00000012:		call main
-00000017:		POP_EVERYTING
-00000021:		EXIT_0
-0000002b:		IN_CODE
-0000008a:		OUT_CODE
-0000015a:		POW_CODE
-000001b2:		f1058: ; def main
-000001b2:		push rbp ; create stack frame
-000001b3:		mov rbp, rsp
+00000000:		PUSH_EVERYTING
+0000000a:		call main
+0000000f:		POP_EVERYTING
+00000019:		EXIT_0
+00000023:		IN_CODE
+00000082:		OUT_CODE
+00000152:		POW_CODE
+000001aa:		f1058: ; def main
+000001aa:		push rbp ; create stack frame
+000001ab:		mov rbp, rsp
 
-000001b6:		sub rsp, 0 ; jump over parameters
+000001ae:		sub rsp, 0 ; jump over parameters
 
-000001bd:		mov rax, 0 ; const value << 9
-000001c2:		sub rsp, 8 ; declared ЛошедьА; [8; 16]
-000001c9:		mov [rbp - 8], rax ; ЛошедьА = rax
-000001d0:		
-000001d0:		mov rax, 0 ; const value << 9
-000001d5:		sub rsp, 8 ; declared ЛошедьБ; [16; 24]
-000001dc:		mov [rbp - 16], rax ; ЛошедьБ = rax
-000001e3:		
-000001e3:		mov rax, 0 ; const value << 9
-000001e8:		sub rsp, 8 ; declared ЛошедьВ; [24; 32]
-000001ef:		mov [rbp - 24], rax ; ЛошедьВ = rax
-000001f6:		
-000001f6:		call in
-000001fb:		mov [rbp - 8], rax ; ЛошедьА = rax
-00000202:		
-00000202:		call in
-00000207:		mov [rbp - 16], rax ; ЛошедьБ = rax
-0000020e:		
-0000020e:		mov rax, [rbp - 16] ; ЛошедьБ
-00000215:		push rax
+000001b5:		mov rax, 0 ; const value << 9
+000001ba:		sub rsp, 8 ; declared ЛошедьА; [8; 16]
+000001c1:		mov [rbp - 8], rax ; ЛошедьА = rax
+000001c8:		
+000001c8:		mov rax, 0 ; const value << 9
+000001cd:		sub rsp, 8 ; declared ЛошедьБ; [16; 24]
+000001d4:		mov [rbp - 16], rax ; ЛошедьБ = rax
+000001db:		
+000001db:		mov rax, 0 ; const value << 9
+000001e0:		sub rsp, 8 ; declared ЛошедьВ; [24; 32]
+000001e7:		mov [rbp - 24], rax ; ЛошедьВ = rax
+000001ee:		
+000001ee:		call in
+000001f3:		mov [rbp - 8], rax ; ЛошедьА = rax
+000001fa:		
+000001fa:		call in
+000001ff:		mov [rbp - 16], rax ; ЛошедьБ = rax
+00000206:		
+00000206:		mov rax, [rbp - 8] ; ЛошедьА
+00000215:		mov rax, [rbp - 16] ; ЛошедьБ
+00000224:		call pow
+00000229:		mov [rbp - 24], rax ; ЛошедьВ = rax
+00000230:		
+00000230:		mov rax, [rbp - 24] ; ЛошедьВ
+00000237:		call out
+0000023c:		
+0000023c:		mov rax, 0 ; const value << 9
+00000241:		mov rsp, rbp
+00000244:		pop rbp ; stack frame return
 
-00000216:		mov rax, [rbp - 8] ; ЛошедьА
-0000021d:		pop rbx
-
-0000021e:		sar rbx, 9 ; pseudo-float emul
-00000222:		cqo
-
-00000224:		idiv rbx
-
-00000227:		mov [rbp - 24], rax ; ЛошедьВ = rax
-0000022e:		
-0000022e:		mov rax, [rbp - 24] ; ЛошедьВ
-00000235:		call out
-0000023a:		
-0000023a:		mov rax, 0 ; const value << 9
-0000023f:		mov rsp, rbp
-00000242:		pop rbp ; stack frame return
-
-00000243:		ret
-00000244:		
-00000244:		
+00000245:		ret
+00000246:		
+00000246:		

@@ -54,7 +54,7 @@ static int *ConstructPROGheader (Elf64_Phdr *dest, int prog_len)
     LOG_MSG ("Creating a program header <%p>\n", dest);
 
     SET_FIELD (p_type,    PT_LOAD);
-    SET_FIELD (p_offset,  0x80);
+    SET_FIELD (p_offset,  0x78);
     SET_FIELD (p_vaddr,   0x8048080);
     SET_FIELD (p_paddr,   0);
     SET_FIELD (p_filesz,  prog_len);
@@ -90,14 +90,14 @@ FILE *CreateTemplate (const char *name, int prog_len)
     ConstructELFheader (&hdr);
     fwrite (&hdr, sizeof (hdr), 1, templ);
 
-    printf ("written header to file, bytes: %ld\n", ftell (templ));
+    LOG_MSG ("written ELF header to file, bytes: %ld\n", ftell (templ));
 
     Elf64_Phdr pHdr = {};
 
     ConstructPROGheader (&pHdr, prog_len);
     fwrite (&pHdr, sizeof (pHdr), 1, templ);
 
-    printf ("written header to file, bytes: %ld\n", ftell (templ));
+    LOG_MSG ("written Program header to file, bytes: %ld\n", ftell (templ));
 
     return templ;
 }

@@ -774,7 +774,8 @@ static int NodeToAsm (TNode *node)
 
 static int ReadyBuf (void)
 {
-    int pagesize = (int) sysconf(_SC_PAGE_SIZE);
+    int pagesize = (int) sysconf (_SC_PAGE_SIZE);
+    
     if (pagesize == -1)
     {
         LOG_ERR ("Pagesize unknown: %d\n", pagesize);
@@ -820,9 +821,6 @@ int ToBIN (TNode *root, const char *name, int func_num, FuncId *func_ids)
 
     DBINT;
 
-    PrintA ("const_for_pow: dq 512");
-    PrintB (INSTRUCTION { 0x512, 8, 0, 0});
-
     PRERENDER (PUSH_EVERYTING);
 
     PrintA ("call main");
@@ -842,6 +840,8 @@ int ToBIN (TNode *root, const char *name, int func_num, FuncId *func_ids)
 
     FuncArr[2].addr = ArrLen;
     PRERENDER (POW_CODE);
+
+    printf ("written prerenders to file, bytes: %ld\n", ArrLen);
 
     int err = NodeToAsm (root);
 

@@ -67,6 +67,29 @@ Current version does not support ```-i``` when using ```-B```. ELF output will a
 
     ID    ::= [a-zA-Z]+
 
+# Implementation details
+
+* [ELF-file generation](#elf-file-generation)
+* [File structure](#file-structure)
+
+## ELF-file generation
+
+The program generates the most basic executable ELF-file. Virtual load address will
+always be equal to ```<0x08048080>```. Code length should not exceed ```$PAGESIZE```
+environment variable value.
+
+These limitations will be fixed in the future patches.
+
+## File structure
+
+Table of ELF-file contents
+
+|    Section     | Offset |      Length     |                                                              Content                                                             |
+|:--------------:|:------:|:---------------:|:--------------------------------------------------------------------------------------------------------------------------------:|
+|   ELF header   |    0   |       0x40      |                                                         Basic ELF-header.                                                        |
+| Program header |  0x40  |       0x38      |                  Basic program header. The only part that is changed in template is the executable code length.                  |
+|      Code      |  0x78  | [0x1AA; 0x11AA] | Executable code. Minimum size is 0x1AA bytes due to precompiled PRINT, SCAN and POW functions being forcefully pasted into file. |
+
 # Performance test
 
 The main goal of this project was to increase the execution speed of programs written in our language.
@@ -79,7 +102,7 @@ The ELF execution time is then compared with the same task performance on our Pr
 
 | Architecture | Exec. Time, s |
 |:------------:|:-------------:|
-|   Processor  |  5.20 ± 0...  |
+|   Processor  |  5.20 ± 0.10  |
 |    x86_64    | 0.011 ± 0.001 |
 
 #### Overall speedup is approximately 450x
