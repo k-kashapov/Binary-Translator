@@ -18,6 +18,10 @@ Current version does not support ```-i``` when using ```-B```. ELF output will a
 
 ## Grammar
 
+<details>
+
+<summary>Expand me</summary>
+
     G     ::= Купил мужик шляпу. OP+ А она ему как раз, господа.
 
     OP    ::= Dec || Func || IF || While || Call || Assn || Ret || Print.
@@ -66,6 +70,8 @@ Current version does not support ```-i``` when using ```-B```. ELF output will a
     Print ::= Голос, ID!
 
     ID    ::= [a-zA-Z]+
+
+</details>
 
 # Implementation details
 
