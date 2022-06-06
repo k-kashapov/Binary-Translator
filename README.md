@@ -183,8 +183,9 @@ This structure is then pasted into opcodes buffer.
 
 * [General](#general)
 * [Variables](#variables)
+* [```CALL``` and ```RET```](#call-and-ret)
+* [Function declaration](#function-declaration)
 * [Operators](#operators)
-* [CALL and RET](#call-and-ret)
 
 ## General
 
@@ -200,7 +201,7 @@ This structure is then pasted into opcodes buffer.
 
 ## Variables
 
-The language standart we use does not require variable declaration before usage. However, in the
+The language standard we use does not require variable declaration before usage. However, in the
 language front-end implementation we treat undeclared variables as an error.
 
 
@@ -209,7 +210,9 @@ first time in language tree.
 
 When a variable is used in code, it's value is moved to ```RAX``` register.
 
-## CALL and RET
+## ```CALL``` and ```RET```
+
+### ```CALL```
 
 To call a function, we do the following steps:
 
@@ -219,7 +222,7 @@ To call a function, we do the following steps:
 
 <details>
 
-<summary>More details</summary>
+<summary>Detailed stack</summary>
 
 Let's say, we want to call a function ```int func (int first, int second)```. It has 2 parameters.
 
@@ -231,12 +234,12 @@ This is how stack looks like before calling:
 |  Explanation  | Old ```RBP``` value | Variable A | Variable B | Garbage | Garbage | Garbage | Garbage | Garbage |
 |   Registers   |      ```RBP```      |            |  ```RSP``` |         |         |         |         |         |
 
-We then call ```func (A, B)```.
+We then call ```func (A, B)``` in our language.
 
 Function parameters will be placed into ```[RSP - 0x10 - 0x8 * N]```, where ```N``` is the
 parameter number.
 
-So, after all arguments are passed, the stack would look like this:
+After all arguments are passed, the stack would look like this:
 
 |     Offset    |        0x0000       |  -0x0008   |   -0x0010  | -0x0018 | -0x0020 |        -0x0028         |        -0x0030         | -0x0038 |
 |:-------------:|:-------------------:|:----------:|:----------:|:-------:|:-------:|:----------------------:|:----------------------:|:-------:|
@@ -244,13 +247,49 @@ So, after all arguments are passed, the stack would look like this:
 |  Explanation  | Old ```RBP``` value | Variable A | Variable B | Garbage | Garbage | Parameter = Variable A | Parameter = Variable B | Garbage |
 |   Registers   |      ```RBP```      |            |  ```RSP``` |         |         | ```RSP - 0x10 - 0x8``` | ```RSP - 0x10 - 0x10```|         |
 
+</details>
+
+2) Call the function: ```RIP``` is pushed to stack.
+
+3) Create stack frame: ```RBP``` is pushed to stack and moved to the position of ```RSP```.
+
+<details>
+
+<summary>Stack after call</summary>
+
+When the called function execution is started, the stack looks like this:
+
+|     Offset    |        0x0000       |  -0x0008   |   -0x0010  |    -0x0018    |      -0x0020        |        -0x0028         |        -0x0030         | -0x0038 |
+|:-------------:|:-------------------:|:----------:|:----------:|:-------------:|:-------------------:|:----------------------:|:----------------------:|:-------:|
+| Stack example |        0x1234       |   0x0042   |   0x00CE   |     0xC0DE    |       0x0000        |         0x0042         |         0x00CE         |  0x0000 |
+|  Explanation  | Old ```RBP``` value | Variable A | Variable B | Old ```RIP``` | Old ```RBP``` value | Parameter = Variable A | Parameter = Variable B | Garbage |
+|   Registers   |                     |            |            |               | ```RBP```,```RSP``` |    ```RSP - 0x8```     |    ```RSP - 0x10```    |         |
 
 </details>
 
+This concludes the calling process.
+
+### ```RET```
+
+When returning from a function, all of the above actions are reverted:
+
+1) ```mov RSP, RBP```
+
+2) ```pop RBP```
+
+3) ```ret```
+
+## Function declaration
+
+Whenever a function is declared, a stack frame creation code is pasted.
+We then decrease ```RSP``` by ```0x8 * N```, where ```N``` - number of parameters this function
+has. 
+
+Then the function code is printed.
 
 ## Operators
 
-operators
+WIP
 
 
 # Performance test
