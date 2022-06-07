@@ -185,6 +185,7 @@ This structure is then pasted into opcodes buffer.
 * [Variables](#variables)
 * [```CALL``` and ```RET```](#call-and-ret)
 * [Function declaration](#function-declaration)
+* [```IN``` and ```OUT```](#in-and-out)
 * [Operators](#operators)
 
 ## General
@@ -286,6 +287,17 @@ We then decrease ```RSP``` by ```0x8 * N```, where ```N``` - number of parameter
 has. 
 
 Then the function code is printed.
+
+## ```IN``` and ```OUT```
+
+### ```IN```
+
+This function is responsible for reading an integer value from keyboard.
+Although all computations use pseudo-floats, there's currently no way to read a floating point
+value from keyboard.
+
+The function is a part of my "stdlib" and is pasted into every file before the program code.
+
 
 ## Operators
 
