@@ -186,6 +186,7 @@ This structure is then pasted into opcodes buffer.
 * [```CALL``` and ```RET```](#call-and-ret)
 * [Function declaration](#function-declaration)
 * [```IN``` and ```OUT```](#in-and-out)
+* [```IF``` and ```WHILE```](#if-and-while)
 * [Operators](#operators)
 
 ## General
@@ -298,11 +299,85 @@ value from keyboard.
 
 The function is a part of my "stdlib" and is pasted into every file before the program code.
 
+### ```OUT```
+
+Prints a floating-point value to ```stdout```. The string is generated separately for the
+integer and fractional parts of the value.
+
+The function is a part of my "stdlib" and is pasted into every file before the program code.
+
+## ```IF``` and ```WHILE```
+
+Both nodes are processed almost identically, so we will give detailed info only on ```IF```.
+
+When the translator encounters an ```IF``` node, the following actions are done:
+
+1) Translate the condition node. It's value will be stored in ```RAX```
+
+2) ```test RAX```
+
+3) Print the conditional jump opcode (1 byte). Save current offset in opcodes buffer to variable (let's call it ```JmpArgPos```). Print dummy argument (4 bytes with value 0).
+
+4) Translate the ```else``` branch
+
+5) Save current position for future patching an uncoditional jump to the end of if statement.
+
+6) Calculate the offset of current position from the conditional jump: ```OFFS = (Curr_offs - JmpArgPos - ArgLen)```
+
+7) Patch the argument of the conditional jump, so it jumps at the start of the ```if true``` branch
+
+8) Translate the ```if true``` branch
+
+9) Patch the unconditional jump after the ```else``` branch
 
 ## Operators
 
+Operators in our language can be split into several classes:
+
+* [Assignment](#assingment)
+
+* [Arithmetics](#arithmetics)
+
+* [Comparisons](#comparisons)
+
+* [Negation](#negation)
+
+We will now give explanations for each class
+
+### Assignment
+
+To assign a value to a variable, we first translate the entire rValue node. It's result will
+be stored in ```RAX```. We then ```mov [RBP - OFFS], RAX```, where ```OFFS``` is the variable
+offset in stack.
+
+For example, the following code:
+
+```
+"Количество" - подумал Штирлиц 1 раз.
+Этим Количество был 2.
+```
+
+Assigns a constant value of 2 to the variable ```Количество```.
+
+
+It will be translated into the following assembly code:
+
+```
+mov rax, 1024       ; const value << 9
+mov [rbp - 24], rax ; Количество = rax
+```
+
+### Arithmetics
+
 WIP
 
+### Comparisons
+
+WIP
+
+### Negation
+
+WIP
 
 # Performance test
 
